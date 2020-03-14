@@ -4,6 +4,7 @@ const cloudscraper = require('cloudscraper');
 
 const animeURL = 'https://animepahe.com/anime/';
 const apiURL = 'https://animepahe.com/api';
+const animeIDReg = /&id=(\d+)/;
 
 
 // Returns the default headers to use for animepahe
@@ -32,6 +33,51 @@ async function search(query) {
     return results.data ? results.data.map(handleSearchResult) : [];
 }
 
+// Returns page information from animepahe api
+async function getPageData(animeID, page = 1) {
+    const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
+    const response = await cloudscraper.get(apiURL, { qs: params });
+    const data = JSON.parse(response);
+    return data
+}
+
+// Retrieves episode data from animepahe api page results
+function getEpisodes(url, animeData) {
+    let episodes = [];
+    const data = animeData.data ? animeData.data : [];
+
+    for (const { anime_title: title, episode: episodeNum, id, snapshot: poster } of data) {
+        episodes.push({
+            title: `${title} Episode ${episodeNum}`,
+            url: `${url}/${id}`,
+            poster: poster
+        });
+    }
+    return episodes;
+}
+
+// Collects relevant details of anime such as title, description and episodes
+async function getAnime(url) {
+    const response = await cloudscraper.get(url);
+    const [, animeID,] = animeIDReg.exec(response);
+    if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
+
+    let pageData = await getPageData(animeID);
+    let episodes = getEpisodes(url, pageData);
+    let startPage = pageData.current_page, lastPage = pageData.last_page;
+
+    if (startPage < lastPage) {
+        startPage++, lastPage++;
+        for (let i = startPage; i < lastPage; i++) {
+            pageData = await getPageData(animeID, i);
+            episodes = episodes.concat(getEpisodes(url, pageData));
+        }
+    }
+
+    return episodes;
+}
+
 module.exports = {
-    search
+    search,
+    getAnime
 }
