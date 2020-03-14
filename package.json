@@ -1,0 +1,25 @@
+{
+  "name": "anigrab",
+  "version": "0.0.0",
+  "description": "Free and fast open source anime downloader",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngomile/anigrab.git"
+  },
+  "keywords": [
+    "anime",
+    "free",
+    "downloader",
+    "fast"
+  ],
+  "author": "Noel Gomile",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/ngomile/anigrab/issues"
+  },
+  "homepage": "https://github.com/ngomile/anigrab#readme"
+}
