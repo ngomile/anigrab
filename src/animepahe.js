@@ -28,7 +28,8 @@ function handleSearchResult(searchResult) {
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
     const response = await cloudscraper.get(apiURL, { qs: searchParams, headers: getHeaders() });
-    return JSON.parse(response).data.map(handleSearchResult);
+    const results = JSON.parse(response);
+    return results.data ? results.data.map(handleSearchResult) : [];
 }
 
 module.exports = {
