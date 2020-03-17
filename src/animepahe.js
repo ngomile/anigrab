@@ -43,11 +43,11 @@ async function getPageData(animeID, page = 1) {
 }
 
 // Retrieves episode data from animepahe api page results
-function getEpisodes(url, animeData) {
+function getEpisodes(title, url, animeData) {
     let episodes = [];
     const data = animeData.data ? animeData.data : [];
 
-    for (const { anime_title: title, episode: episodeNum, id, snapshot: poster } of data) {
+    for (const { episode: episodeNum, id, snapshot: poster } of data) {
         episodes.push({
             title: `${title} Episode ${episodeNum}`,
             url: `${url}/${id}`,
@@ -59,19 +59,20 @@ function getEpisodes(url, animeData) {
 
 // Collects relevant details of anime such as title, description and episodes
 async function getAnime(url) {
-    const response = await cloudscraper.get(url, { headers: getHeaders() });
-    const [, animeID,] = animeIDReg.exec(response);
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const [, title,] = /<h1>([^<]+)/.exec(page);
+    const [, animeID,] = animeIDReg.exec(page);
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
 
     let pageData = await getPageData(animeID);
-    let episodes = getEpisodes(url, pageData);
+    let episodes = getEpisodes(title, url, pageData);
     let startPage = pageData.current_page, lastPage = pageData.last_page;
 
     if (startPage < lastPage) {
         startPage++, lastPage++;
         for (let i = startPage; i < lastPage; i++) {
             pageData = await getPageData(animeID, i);
-            episodes = episodes.concat(getEpisodes(url, pageData));
+            episodes = episodes.concat(getEpisodes(title, url, pageData));
         }
     }
 
