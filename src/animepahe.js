@@ -4,8 +4,10 @@ const cloudscraper = require('cloudscraper');
 
 const animeURL = 'https://animepahe.com/anime/';
 const apiURL = 'https://animepahe.com/api';
+const supportedServers = ['kwik', 'mp4upload'];
 const animeIDReg = /&id=(\d+)/;
 const serverReg = /data-provider="([^"]+)/g;
+const idSessionReg = /getEmbeds\((\d+), "([^"]+)/g;
 
 
 // Returns the default headers to use for animepahe
@@ -94,13 +96,17 @@ function getServers(page) {
 
 // Extracts the qualities for a given episode returning a mapping of
 // qualities and their associated urls
-async function getQualities(server, episodeID) {
+async function getQualities(server, episodeID, session) {
     let qualities = new Map();
-    const params = { 'id': episodeID, 'm': 'embed', 'p': server };
+    const params = { 'id': episodeID, 'm': 'embed', 'p': server, 'session': session };
     const apiResult = await cloudscraper.get(apiURL, { qs: params, headers: getHeaders() });
-    const qualityData = JSON.parse(apiResult).data[episodeID];
-    for (const quality in qualityData) {
-        qualities.set(quality, qualityData[quality].url);
+
+    if (apiResult === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
+    const providerInfo = Object.values(JSON.parse(apiResult).data);
+
+    for (const info of providerInfo) {
+        const [quality] = Object.keys(info);
+        qualities.set(`${quality}p`, info[quality].url);
     }
     return qualities;
 }
@@ -108,16 +114,15 @@ async function getQualities(server, episodeID) {
 // Extracts episode data for animepahe
 async function getEpisode(title, url) {
     let qualities;
-    const [episodeID,] = url.match(/(\d+)$/);
-    const supportedServers = ['kwik', 'mp4upload'];
     const episodePage = await cloudscraper.get(url, { headers: getHeaders() });
     const servers = getServers(episodePage);
+    const [, episodeID, session,] = idSessionReg.exec(episodePage);
 
     if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
         if (!supportedServers.includes(server)) continue;
-        qualities = await getQualities(server, episodeID);
+        qualities = await getQualities(server, episodeID, session);
         break;
     }
     return { title: title, qualities: qualities };
