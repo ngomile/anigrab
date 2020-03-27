@@ -25,6 +25,28 @@ async function search(query) {
     return searchResults;
 }
 
+async function getAnime(url) {
+    // animeout has awkward naming, may need a better way to filter out links
+    // and give proper titles
+    let episodes = [], number = 1;
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const $ = cheerio.load(page);
+    let animeName = $('div.article-content h4').first().text();
+    if (!animeName) animeName = $('div.article-content h1').first().text() || 'Unknown';
+
+    $('article.post a').each(function (ind, element) {
+        let title = $(this).text();
+        const url = $(this).attr('href');
+        if (!title.includes('Direct Download')) return;
+        // To avoid awkward cases where name is just Direct Download
+        title = title === 'Direct Download' ? `${animeName} Episode ${number}` : title;
+        number++;
+        episodes.push({ title: title, url: url });
+    });
+    return episodes;
+}
+
 module.exports = {
-    search
+    search,
+    getAnime
 };
