@@ -27,6 +27,21 @@ async function search(query) {
     return searchResults;
 }
 
+async function getAnime(url) {
+    let episodes = [];
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const $ = cheerio.load(page);
+    const title = $('h1.infodes').first().text();
+    $('a.infovan').each(function (ind, element) {
+        let episodeNum = $(this).find('.infoept2 .centerv').text();
+        let episodeTitle = `${title} Episode ${episodeNum}`;
+        let url = `${siteURL}/${$(this).attr('href')}`;
+        episodes.push({ title: episodeTitle, url: url });
+    });
+    return episodes.reverse();
+}
+
 module.exports = {
-    search
+    search,
+    getAnime
 }
