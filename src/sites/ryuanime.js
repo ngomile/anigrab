@@ -27,6 +27,21 @@ async function search(query) {
     return searchResults;
 }
 
+async function getAnime(url) {
+    let episodes = [];
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const $ = cheerio.load(page);
+    $('.card-body .row a').each(function (ind, element) {
+        let title = $(this).text();
+        // Only getting subbed for now
+        if (!title.includes('Sub')) return;
+        let url = $(this).attr('href');
+        episodes.push({ title: title, url: url });
+    });
+    return episodes.reverse();
+}
+
 module.exports = {
-    search
+    search,
+    getAnime
 }
