@@ -13,8 +13,8 @@ const idSessionReg = /getEmbeds\((\d+), "([^"]+)/g;
 // Returns the default headers to use for animepahe
 function getHeaders() {
     return {
-        'referer': 'https://animepahe.com/',
-        'user-agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+        'Referer': 'https://animepahe.com/',
+        'User-Agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
     }
 }
 
