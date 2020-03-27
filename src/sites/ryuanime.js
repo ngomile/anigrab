@@ -4,6 +4,7 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const searchURL = 'https://www4.ryuanime.com/search';
+const sourcesReg = /episode_videos = (\[.*\])/;
 
 function getHeaders() {
     return {
@@ -41,7 +42,26 @@ async function getAnime(url) {
     return episodes.reverse();
 }
 
+async function getEpisode(title, url) {
+    let qualities = new Map();
+    const episodePage = await cloudscraper.get(url, { headers: getHeaders() });
+    let [, sources] = sourcesReg.exec(episodePage);
+    sources = JSON.parse(sources);
+    for (const source of sources) {
+        if (source.host === 'trollvid') {
+            qualities.set('unknown', `trollvid.net/embed/${source.id}`);
+            return { title: title, qualities: qualities };
+        } else if (source.host === 'mp4upload') {
+            qualities.set('unknown', `https://www.mp4upload.com/embed-${source.id}.html`)
+            return { title: title, qualities: qualities };
+        }
+    }
+    // In the exceptional case that no sources are found error is thrown
+    throw new Error('Episode sources not found');
+}
+
 module.exports = {
     search,
-    getAnime
+    getAnime,
+    getEpisode
 }
