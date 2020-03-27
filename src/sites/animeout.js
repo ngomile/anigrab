@@ -2,6 +2,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const searchURL = 'https://www.animeout.xyz/';
+const qualityReg = /(\d{3,4}p)/;
+const realURLReg = /var url = "([^"]+)/;
 
 // Returns the default headers to use for animeout
 function getHeaders() {
@@ -46,7 +48,21 @@ async function getAnime(url) {
     return episodes;
 }
 
+async function getEpisode(title, url) {
+    let qualities = new Map();
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    let $ = cheerio.load(page);
+    let realDLPage = $('a.btn').first().attr('href');
+    realDLPage = await cloudscraper.get(realDLPage, { headers: getHeaders() });
+    let [, quality] = qualityReg.exec(realDLPage);
+    const [, realURL] = realURLReg.exec(realDLPage);
+    quality = quality || 'unknown';
+    qualities.set(quality, realURL);
+    return { title: title, qualities: qualities };
+}
+
 module.exports = {
     search,
-    getAnime
+    getAnime,
+    getEpisode
 };
