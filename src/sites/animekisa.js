@@ -52,5 +52,6 @@ async function getEpisode(title, url) {
 
 module.exports = {
     search,
-    getAnime
+    getAnime,
+    getEpisode
 }
