@@ -1,3 +1,5 @@
+'use strict';
+
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
