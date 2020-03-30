@@ -3,7 +3,9 @@
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
+const siteURL = 'https://www16.gogoanime.io';
 const searchURL = 'https://ajax.gogocdn.net/site/loadAjaxSearch';
+const apiURL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 
 function getHeaders() {
     return {
@@ -30,4 +32,30 @@ async function search(query) {
     return searchResults;
 }
 
-search('Naruto').then(console.log, console.error);
+async function getAnime(url) {
+    let episodes = [];
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    let $ = cheerio.load(page);
+
+    const animeName = $('title').text().replace(' at Gogoanime', '');
+    const movieID = $('#movie_id').first().attr('value');
+    const [, alias] = url.match(/category\/(.*)$/);
+    const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias: alias };
+    const response = await cloudscraper.get(apiURL, { headers: getHeaders(), qs: params });
+    $ = cheerio.load(response);
+
+    $('#episode_related a').each(function (ind, element) {
+        let episodeNum = $(this).find('.name').text().replace('EP ', '');
+        let title = `${animeName} Episode ${episodeNum}`;
+        let url = $(this).attr('href').trim();
+        url = `${siteURL}${url}`;
+        episodes.push({ title: title, url: url });
+    });
+
+    return episodes.reverse();
+}
+
+module.exports = {
+    search,
+    getAnime
+}
