@@ -4,6 +4,7 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const searchURL = 'https://hentaihaven.xxx/';
+const apiURL = 'https://hentaihaven.xxx/wp-admin/admin-ajax.php';
 
 function getHeaders() {
     return {
@@ -41,7 +42,34 @@ async function getAnime(url) {
     return episodes;
 }
 
+async function getEpisode(title, url) {
+    let qualities = new Map();
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const [, playerSrc] = page.match(/iframe src="([^"]+)/);
+    const playerPage = await cloudscraper.get(playerSrc, { headers: getHeaders() });
+    let [, videoData] = playerPage.match(/\$\.ajax\((\{.*\})/);
+    const [, action, a, b] = videoData.match(/action:'(.*)',a:'(.*)',b:'(.*)'/);
+    const formData = { action, a, b };
+    let sourceData = await cloudscraper.post(apiURL, {
+        headers: {
+            'Referer': playerSrc,
+            'User-Agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+        },
+        formData: formData
+    });
+
+    const sources = JSON.parse(sourceData.match(/(\{.*\})/)[1]).sources;
+    for (const source of sources) {
+        qualities.set(source.label, source.src);
+    }
+
+    return { title: title, qualities: qualities };
+}
+
+getEpisode('', 'https://hentaihaven.xxx/watch/taimanin-asagi-3/episode-1/').then(console.log, console.error);
+
 module.exports = {
     search,
-    getAnime
+    getAnime,
+    getEpisode
 }
