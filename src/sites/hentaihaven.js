@@ -26,6 +26,22 @@ async function search(query) {
     return searchResults;
 }
 
+async function getAnime(url) {
+    let episodes = [];
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const $ = cheerio.load(page);
+    const title = $('h1').first().text().trim();
+
+    $('.wp-manga-chapter').each(function (ind, element) {
+        const episodeNum = $(this).find('a').text().trim();
+        const url = $(this).find('a').attr('href');
+        episodes.push({ title: `${title} - ${episodeNum}`, url: url });
+    });
+
+    return episodes;
+}
+
 module.exports = {
-    search
+    search,
+    getAnime
 }
