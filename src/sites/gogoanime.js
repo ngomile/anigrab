@@ -55,7 +55,17 @@ async function getAnime(url) {
     return episodes.reverse();
 }
 
+async function getEpisode(title, url) {
+    let qualities = new Map();
+    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    let [, source] = page.match(/href="(https:\/\/vidstreaming.io\/download.*)" target/);
+    if (!source) [, source] = page.match(/data-video="(.*)"> Mp4Upload/);
+    qualities.set('unknown', source);
+    return { title: title, qualities: qualities };
+}
+
 module.exports = {
     search,
-    getAnime
+    getAnime,
+    getEpisode
 }
