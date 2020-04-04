@@ -66,8 +66,6 @@ async function getEpisode(title, url) {
     return { title: title, qualities: qualities };
 }
 
-getEpisode('', 'https://hentaihaven.xxx/watch/taimanin-asagi-3/episode-1/').then(console.log, console.error);
-
 module.exports = {
     search,
     getAnime,
