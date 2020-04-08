@@ -31,6 +31,26 @@ async function search(query) {
     return searchResults;
 }
 
+async function getAnime(url) {
+    let episodes = [], page, $;
+    if (!url.startsWith('https://animeidhentai.com/hentai/')) {
+        page = await cloudscraper.get(url, { headers: getHeaders() });
+        $ = cheerio.load(page);
+        url = $('.entry-footer').find('a').last().attr('href');
+    }
+    page = await cloudscraper.get(url, { headers: getHeaders() });
+
+    $ = cheerio.load(page);
+    $('.hentai').each(function (ind, element) {
+        const title = $(this).find('h2').text();
+        const [, url] = $(this).html().match(urlReg);
+        episodes.push({ title, url });
+    });
+
+    return episodes.reverse();
+}
+
 module.exports = {
-    search
+    search,
+    getAnime,
 }
