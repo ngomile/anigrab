@@ -3,6 +3,8 @@
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
+const { extractKsplayer } = require('../utils');
+
 const searchURL = 'https://animeidhentai.com/search/';
 const apiURL = 'https://animeidhentai.com/wp-admin/admin-ajax.php';
 const urlReg = /<a href="([^"]+)/;
@@ -76,20 +78,6 @@ async function getEpisode(title, url) {
     streamURL = streamURL.replace('embed', 'download');
     qualities = await extractKsplayer(streamURL);
     return { title, qualities };
-}
-
-async function extractKsplayer(url) {
-    let qualities = new Map();
-    const page = await cloudscraper.get(url, { headers: getHeaders() });
-    const $ = cheerio.load(page);
-
-    $('.download_links a').each(function (ind, element) {
-        const quality = $(this).find('span').text().toLowerCase();
-        const source = $(this).attr('href');
-        qualities.set(quality, source);
-    });
-
-    return qualities;
 }
 
 module.exports = {
