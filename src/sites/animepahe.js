@@ -2,27 +2,28 @@
 
 const cloudscraper = require('cloudscraper');
 
-const animeURL = 'https://animepahe.com/anime/';
-const apiURL = 'https://animepahe.com/api';
-const supportedServers = ['kwik', 'mp4upload'];
-const animeIDReg = /&id=(\d+)/;
-const serverReg = /data-provider="([^"]+)/g;
-const idSessionReg = /getEmbeds\((\d+), "([^"]+)/g;
+const {
+    getHeaders,
+    formatQualities
+} = require('../utils');
 
+const ANIME_URL = 'https://animepahe.com/anime/';
+const API_URL = 'https://animepahe.com/api';
 
-// Returns the default headers to use for animepahe
-function getHeaders() {
-    return {
-        'Referer': 'https://animepahe.com/',
-        'User-Agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
-    }
-}
+const ANIME_ID_REG = /&id=(\d+)/;
+const SERVER_REG = /data-provider="([^"]+)/g;
+const ID_SESSION_REG = /getEmbeds\((\d+), "([^"]+)/g;
+const TITLE_REG = /<h1>([^<]+)/;
+
+const SUPPORTED_SERVERS = ['kwik', 'mp4upload'];
+
+const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animepahe.com/' });
 
 // Formats animepahe search results
 function handleSearchResult(searchResult) {
     return {
         title: searchResult.title || 'N/A',
-        url: `${animeURL}${searchResult.slug}`,
+        url: `${ANIME_URL}${searchResult.slug}`,
         poster: searchResult.image || 'N/A',
         status: searchResult.status || 'N/A'
     }
@@ -31,7 +32,7 @@ function handleSearchResult(searchResult) {
 // Returns search results from animepahe for the given query
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
-    const response = await cloudscraper.get(apiURL, { qs: searchParams, headers: getHeaders() });
+    const response = await cloudscraper.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS });
     const results = JSON.parse(response);
     return results.data ? results.data.map(handleSearchResult) : [];
 }
@@ -39,7 +40,7 @@ async function search(query) {
 // Returns page information from animepahe api
 async function getPageData(animeID, page = 1) {
     const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
-    const response = await cloudscraper.get(apiURL, { qs: params, headers: getHeaders() });
+    const response = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
     const data = JSON.parse(response);
     return data;
 }
@@ -61,9 +62,9 @@ function getEpisodes(title, url, animeData) {
 
 // Collects relevant details of anime such as title, description and episodes
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: getHeaders() });
-    const [, title,] = /<h1>([^<]+)/.exec(page);
-    const [, animeID,] = animeIDReg.exec(page);
+    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const [, title,] = TITLE_REG.exec(page);
+    const [, animeID,] = ANIME_ID_REG.exec(page);
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
 
     let pageData = await getPageData(animeID);
@@ -85,7 +86,7 @@ async function getAnime(url) {
 function getServers(page) {
     let servers = [], match, server;
     do {
-        match = serverReg.exec(page);
+        match = SERVER_REG.exec(page);
         if (match) {
             [, server,] = match;
             servers.push(server);
@@ -99,7 +100,7 @@ function getServers(page) {
 async function getQualities(server, episodeID, session) {
     let qualities = new Map();
     const params = { 'id': episodeID, 'm': 'embed', 'p': server, 'session': session };
-    const apiResult = await cloudscraper.get(apiURL, { qs: params, headers: getHeaders() });
+    const apiResult = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
 
     if (apiResult === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
     const providerInfo = Object.values(JSON.parse(apiResult).data);
@@ -114,18 +115,20 @@ async function getQualities(server, episodeID, session) {
 // Extracts episode data for animepahe
 async function getEpisode(title, url) {
     let qualities;
-    const episodePage = await cloudscraper.get(url, { headers: getHeaders() });
+    const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const servers = getServers(episodePage);
-    const [, episodeID, session,] = idSessionReg.exec(episodePage);
+    const [, episodeID, session,] = ID_SESSION_REG.exec(episodePage);
 
     if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
-        if (!supportedServers.includes(server)) continue;
+        if (!SUPPORTED_SERVERS.includes(server)) continue;
         qualities = await getQualities(server, episodeID, session);
+        qualities = formatQualities(qualities, { extractor: server });
         break;
     }
-    return { title: title, qualities: qualities };
+
+    return { title, qualities };
 }
 
 module.exports = {

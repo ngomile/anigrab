@@ -3,20 +3,21 @@
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
-const searchURL = 'https://www4.ryuanime.com/search';
-const sourcesReg = /episode_videos = (\[.*\])/;
+const {
+    getHeaders,
+    formatQualities
+} = require('../utils');
 
-function getHeaders() {
-    return {
-        'User-Agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
-        'Referer': 'https://www4.ryuanime.com/'
-    }
-}
+const SEARCH_URL = 'https://www4.ryuanime.com/search';
+
+const SOURCES_REG = /episode_videos = (\[.*\])/;
+
+const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www4.ryuanime.com/' });
 
 async function search(query) {
     let searchResults = [];
     const params = { term: query };
-    const searchPage = await cloudscraper.get(searchURL, { qs: params, headers: getHeaders() });
+    const searchPage = await cloudscraper.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
     const $ = cheerio.load(searchPage);
     $('.list-inline a').each(function (ind, elemenet) {
         searchResults.push({
@@ -30,31 +31,34 @@ async function search(query) {
 
 async function getAnime(url) {
     let episodes = [];
-    const page = await cloudscraper.get(url, { headers: getHeaders() });
+    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
     $('.card-body .row a').each(function (ind, element) {
         let title = $(this).text();
         // Only getting subbed for now
         if (!title.includes('Sub')) return;
         let url = $(this).attr('href');
-        episodes.push({ title: title, url: url });
+        episodes.push({ title, url });
     });
     return episodes.reverse();
 }
 
 async function getEpisode(title, url) {
     let qualities = new Map();
-    const episodePage = await cloudscraper.get(url, { headers: getHeaders() });
-    let [, sources] = sourcesReg.exec(episodePage);
+    const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    let [, sources] = SOURCES_REG.exec(episodePage);
     sources = JSON.parse(sources);
     for (const source of sources) {
         if (source.host === 'trollvid') {
-            qualities.set('unknown', `trollvid.net/embed/${source.id}`);
-            return { title: title, qualities: qualities };
+            qualities.set('unknown', `https://trollvid.net/embed/${source.id}`);
         } else if (source.host === 'mp4upload') {
             qualities.set('unknown', `https://www.mp4upload.com/embed-${source.id}.html`)
-            return { title: title, qualities: qualities };
+        } else {
+            continue;
         }
+
+        qualities = formatQualities(qualities, { 'Referer': url });
+        return { title, qualities };
     }
     // In the exceptional case that no sources are found error is thrown
     throw new Error('Episode sources not found');
