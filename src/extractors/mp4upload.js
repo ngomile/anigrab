@@ -3,7 +3,6 @@
 const { exec } = require('child_process');
 
 const cloudscraper = require('cloudscraper');
-const beautify = require('js-beautify').js;
 
 const {
     getHeaders
