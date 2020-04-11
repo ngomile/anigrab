@@ -72,7 +72,7 @@ async function getQualities(url) {
         referer: url
     });
 
-    return { title, qualities };
+    return { qualities };
 }
 
 module.exports = {

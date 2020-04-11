@@ -77,7 +77,7 @@ async function getQualities(url) {
         referer: API_URL
     });
 
-    return { title, qualities };
+    return { qualities };
 }
 
 module.exports = {

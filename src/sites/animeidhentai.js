@@ -86,7 +86,7 @@ async function getQualities(url) {
         referer: streamURL,
     });
 
-    return { title, qualities };
+    return { qualities };
 }
 
 module.exports = {

@@ -97,7 +97,7 @@ function getServers(page) {
 
 // Extracts the qualities for a given episode returning a mapping of
 // qualities and their associated urls
-async function getQualities(server, episodeID, session) {
+async function getEpisodeQualities(server, episodeID, session) {
     let qualities = new Map();
     const params = { 'id': episodeID, 'm': 'embed', 'p': server, 'session': session };
     const apiResult = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
@@ -123,7 +123,7 @@ async function getQualities(url) {
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
         if (!SUPPORTED_SERVERS.includes(server)) continue;
-        qualities = await getQualities(server, episodeID, session);
+        qualities = await getEpisodeQualities(server, episodeID, session);
         qualities = formatQualities(qualities, {
             extractor: server,
             referer: url
@@ -131,7 +131,7 @@ async function getQualities(url) {
         break;
     }
 
-    return { title, qualities };
+    return { qualities };
 }
 
 module.exports = {

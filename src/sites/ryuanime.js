@@ -62,7 +62,7 @@ async function getQualities(url) {
             extractor: source.host
         });
 
-        return { title, qualities };
+        return { qualities };
     }
     // In the exceptional case that no sources are found error is thrown
     throw new Error('Episode sources not found');
