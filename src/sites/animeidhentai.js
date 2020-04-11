@@ -57,7 +57,7 @@ async function getAnime(url) {
     return episodes.reverse();
 }
 
-async function getEpisode(title, url) {
+async function getQualities(url) {
     let qualities, subTypes = new Map();
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const [, id] = page.match(DATA_ID_REG);
@@ -92,5 +92,5 @@ async function getEpisode(title, url) {
 module.exports = {
     search,
     getAnime,
-    getEpisode
+    getQualities
 }

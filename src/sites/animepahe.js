@@ -113,7 +113,7 @@ async function getQualities(server, episodeID, session) {
 }
 
 // Extracts episode data for animepahe
-async function getEpisode(title, url) {
+async function getQualities(url) {
     let qualities;
     const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const servers = getServers(episodePage);
@@ -137,5 +137,5 @@ async function getEpisode(title, url) {
 module.exports = {
     search,
     getAnime,
-    getEpisode
+    getQualities
 }
