@@ -57,7 +57,11 @@ async function getEpisode(title, url) {
             continue;
         }
 
-        qualities = formatQualities(qualities, { 'Referer': url });
+        qualities = formatQualities(qualities, {
+            referer: url,
+            extractor: source.host
+        });
+
         return { title, qualities };
     }
     // In the exceptional case that no sources are found error is thrown

@@ -67,7 +67,11 @@ async function getEpisode(title, url) {
 
     const [, realURL] = REAL_URL_REG.exec(realDLPage);
     qualities.set(quality, realURL);
-    qualities = formatQualities(qualities, { extractor: 'universal' });
+    qualities = formatQualities(qualities, {
+        extractor: 'universal',
+        referer: realURL
+    });
+
     return { title, qualities };
 }
 

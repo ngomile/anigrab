@@ -72,7 +72,11 @@ async function getEpisode(title, url) {
         qualities.set(source.label, source.src);
     }
 
-    qualities = formatQualities(qualities, { extractor: 'universal' });
+    qualities = formatQualities(qualities, {
+        extractor: 'universal',
+        referer: API_URL
+    });
+
     return { title, qualities };
 }
 

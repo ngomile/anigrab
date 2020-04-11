@@ -124,7 +124,10 @@ async function getEpisode(title, url) {
     for (const server of servers) {
         if (!SUPPORTED_SERVERS.includes(server)) continue;
         qualities = await getQualities(server, episodeID, session);
-        qualities = formatQualities(qualities, { extractor: server });
+        qualities = formatQualities(qualities, {
+            extractor: server,
+            referer: url
+        });
         break;
     }
 

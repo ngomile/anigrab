@@ -77,10 +77,14 @@ async function getEpisode(title, url) {
         headers: getHeaders({ 'Referer': url }),
         formData: formData
     });
+
     let [, streamURL] = streamPage.match(SRC_REG);
     streamURL = streamURL.replace('embed', 'download');
     qualities = await extractKsplayer(streamURL);
-    qualities = formatQualities(qualities, { extractor: 'universal' });
+    qualities = formatQualities(qualities, {
+        extractor: 'universal',
+        referer: streamURL,
+    });
 
     return { title, qualities };
 }

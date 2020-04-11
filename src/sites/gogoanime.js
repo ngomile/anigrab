@@ -82,7 +82,11 @@ async function getEpisode(title, url) {
         qualities = await extractVidstream(source, url);
     };
 
-    qualities = formatQualities(qualities, { extractor });
+    qualities = formatQualities(qualities, {
+        extractor,
+        referer: source
+    });
+
     return { title, qualities };
 }
 
