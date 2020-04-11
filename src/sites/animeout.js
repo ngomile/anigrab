@@ -58,10 +58,14 @@ async function getEpisode(title, url) {
     realDLPage = await cloudscraper.get(realDLPage, { headers: DEFAULT_HEADERS });
 
     let quality = QUALITY_REG.exec(realDLPage);
-    if (quality) [, quality] = quality;
-    else quality = 'unknown';
-    const [, realURL] = REAL_URL_REG.exec(realDLPage);
+    if (quality) {
+        [, quality] = quality;
+    }
+    else {
+        quality = 'unknown';
+    }
 
+    const [, realURL] = REAL_URL_REG.exec(realDLPage);
     qualities.set(quality, realURL);
     qualities = formatQualities(qualities, { extractor: 'universal' });
     return { title, qualities };
