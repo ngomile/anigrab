@@ -1,7 +1,5 @@
 'use strict';
 
-const { exec } = require('child_process');
-
 const cloudscraper = require('cloudscraper');
 
 const {
