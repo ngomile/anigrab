@@ -63,7 +63,7 @@ async function getQualities(url) {
         qualities.set('unknown', source);
     } else {
         let [, source] = match;
-        extractor = 'vidstream';
+        extractor = 'universal';
         qualities = await extractVidstream(source, url);
     }
 

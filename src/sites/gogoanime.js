@@ -69,7 +69,7 @@ async function getAnime(url) {
 }
 
 async function getQualities(url) {
-    let qualities = new Map(), extractor = 'vidstream';
+    let qualities = new Map(), extractor = 'universal';
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     let source = page.match(SOURCES_REG.get('vidstream'));
 
