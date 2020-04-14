@@ -6,7 +6,7 @@ const { getHeaders } = require('../utils');
 
 const SOURCE_REG = /source src="([^"]+)/;
 
-async function extract({ url, referer = '' }) {
+exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
     const page = await rp.get(url, { headers: getHeaders({ 'Referer': referer }) });
     const [, src] = SOURCE_REG.exec(page);
