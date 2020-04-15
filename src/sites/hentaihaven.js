@@ -18,37 +18,43 @@ const SOURCES_REG = /(\{.*\})/;
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://hentaihaven.xxx/hentai/' });
 
-async function search(query) {
+function collectSearchResults($) {
     let searchResults = [];
-    const params = { s: query, post_type: 'wp-manga' };
-    const searchResponse = await cloudscraper.get(SEARCH_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    });
-
-    const $ = cheerio.load(searchResponse);
     $('.c-tabs-item__content').each(function (ind, element) {
         const title = $(this).find('h3 a').first().text();
         const url = $(this).find('h3 a').first().attr('href');
         const poster = $(this).find('img').attr('src');
         searchResults.push({ title, url, poster });
     });
-
     return searchResults;
 }
 
-async function getAnime(url) {
-    let episodes = [];
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+async function search(query) {
+    const params = { s: query, post_type: 'wp-manga' };
+    const searchResponse = await cloudscraper.get(SEARCH_URL, {
+        headers: DEFAULT_HEADERS,
+        qs: params
+    });
+    const $ = cheerio.load(searchResponse);
+    let searchResults = collectSearchResults($);
+    return searchResults;
+}
 
-    const $ = cheerio.load(page);
-    const title = $('h1').first().text().trim();
+function collectEpisodes($, title) {
+    let episodes = [];
     $('.wp-manga-chapter').each(function (ind, element) {
         const episodeNum = $(this).find('a').text().trim();
         const url = $(this).find('a').attr('href');
         episodes.push({ title: `${title} - ${episodeNum}`, url: url });
     });
+    return episodes;
+}
 
+async function getAnime(url) {
+    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const $ = cheerio.load(page);
+    const title = $('h1').first().text().trim();
+    let episodes = collectEpisodes($, title);
     return episodes;
 }
 

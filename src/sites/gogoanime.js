@@ -21,16 +21,8 @@ const SOURCES_REG = new Map([
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www16.gogoanime.io/' });
 
-async function search(query) {
+function collectSearchResults($) {
     let searchResults = [];
-    const params = { keyword: query, id: '-1', link_web: 'https://www16.gogoanime.io/' };
-    let searchResponse = await cloudscraper.get(SEARCH_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    });
-    searchResponse = JSON.parse(searchResponse).content;
-
-    const $ = cheerio.load(searchResponse);
     $('.list_search_ajax').each(function (ind, element) {
         const title = $(this).find('.ss-title').text();
         const url = $(this).find('.ss-title').attr('href');
@@ -38,15 +30,36 @@ async function search(query) {
         [, poster] = poster.match(/"([^"]+)/);
         searchResults.push({ title, url, poster });
     });
-
     return searchResults;
 }
 
-async function getAnime(url) {
+async function search(query) {
+    const params = { keyword: query, id: '-1', link_web: 'https://www16.gogoanime.io/' };
+    let searchResponse = await cloudscraper.get(SEARCH_URL, {
+        headers: DEFAULT_HEADERS,
+        qs: params
+    });
+    searchResponse = JSON.parse(searchResponse).content;
+    const $ = cheerio.load(searchResponse);
+    let searchResults = collectSearchResults($);
+    return searchResults;
+}
+
+function collectEpisodes($, animeName) {
     let episodes = [];
+    $('#episode_related a').each(function (ind, element) {
+        const episodeNum = $(this).find('.name').text().replace('EP ', '');
+        const title = `${animeName} Episode ${episodeNum}`.replace('  ', ' ');
+        let url = $(this).attr('href').trim();
+        url = `${SITE_URL}${url}`;
+        episodes.push({ title, url });
+    });
+    return episodes;
+}
+
+async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     let $ = cheerio.load(page);
-
     const animeName = $('title').text().replace(' at Gogoanime', '');
     const movieID = $('#movie_id').first().attr('value');
     const [, alias] = url.match(ALIAS_REG);
@@ -57,14 +70,7 @@ async function getAnime(url) {
     });
 
     $ = cheerio.load(response);
-    $('#episode_related a').each(function (ind, element) {
-        const episodeNum = $(this).find('.name').text().replace('EP ', '');
-        const title = `${animeName} Episode ${episodeNum}`.replace('  ', ' ');
-        let url = $(this).attr('href').trim();
-        url = `${SITE_URL}${url}`;
-        episodes.push({ title, url });
-    });
-
+    let episodes = collectEpisodes($, animeName);
     return episodes.reverse();
 }
 

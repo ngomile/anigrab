@@ -19,19 +19,12 @@ const SOURCES_REG = new Map([
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animekisa.tv' });
 
-async function search(query) {
+function collectSearchResults($) {
     let searchResults = [];
-    const params = { q: query };
-    const searchPage = await cloudscraper.get(SEARCH_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    });
-
-    const $ = cheerio.load(searchPage);
     $('.lisbox22 a.an').each(function (ind, element) {
-        let title = $(this).find('.similardd').text();
-        let url = `${SITE_URL}${$(this).attr('href')}`;
-        let poster = `${SITE_URL}${$(this).find('img').attr('src')}`;
+        const title = $(this).find('.similardd').text();
+        const url = `${SITE_URL}${$(this).attr('href')}`;
+        const poster = `${SITE_URL}${$(this).find('img').attr('src')}`;
         // Avoid putting garbage result into search results
         if (url === SITE_URL + '/') return;
         searchResults.push({ title, url, poster });
@@ -39,17 +32,33 @@ async function search(query) {
     return searchResults;
 }
 
-async function getAnime(url) {
+async function search(query) {
+    const params = { q: query };
+    const searchPage = await cloudscraper.get(SEARCH_URL, {
+        headers: DEFAULT_HEADERS,
+        qs: params
+    });
+    const $ = cheerio.load(searchPage);
+    let searchResults = collectSearchResults($);
+    return searchResults;
+}
+
+function collectEpisodes($, title) {
     let episodes = [];
+    $('a.infovan').each(function (ind, element) {
+        const episodeNum = $(this).find('.infoept2 .centerv').text();
+        const episodeTitle = `${title} Episode ${episodeNum}`;
+        const url = `${SITE_URL}/${$(this).attr('href')}`;
+        episodes.push({ title: episodeTitle, url });
+    });
+    return episodes;
+}
+
+async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
     const title = $('h1.infodes').first().text();
-    $('a.infovan').each(function (ind, element) {
-        let episodeNum = $(this).find('.infoept2 .centerv').text();
-        let episodeTitle = `${title} Episode ${episodeNum}`;
-        let url = `${SITE_URL}/${$(this).attr('href')}`;
-        episodes.push({ title: episodeTitle, url });
-    });
+    let episodes = collectEpisodes($, title);
     return episodes.reverse();
 }
 

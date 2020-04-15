@@ -14,11 +14,8 @@ const SOURCES_REG = /episode_videos = (\[.*\])/;
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www4.ryuanime.com/' });
 
-async function search(query) {
+function collectSearchResults($) {
     let searchResults = [];
-    const params = { term: query };
-    const searchPage = await cloudscraper.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
-    const $ = cheerio.load(searchPage);
     $('.list-inline a').each(function (ind, elemenet) {
         searchResults.push({
             title: $(this).text(),
@@ -29,10 +26,16 @@ async function search(query) {
     return searchResults;
 }
 
-async function getAnime(url) {
+async function search(query) {
+    const params = { term: query };
+    const searchPage = await cloudscraper.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const $ = cheerio.load(searchPage);
+    let searchResults = collectSearchResults($);
+    return searchResults;
+}
+
+function collectEpisodes($) {
     let episodes = [];
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
-    const $ = cheerio.load(page);
     $('.card-body .row a').each(function (ind, element) {
         let title = $(this).text();
         // Only getting subbed for now
@@ -40,6 +43,13 @@ async function getAnime(url) {
         let url = $(this).attr('href');
         episodes.push({ title, url });
     });
+    return episodes;
+}
+
+async function getAnime(url) {
+    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const $ = cheerio.load(page);
+    let episodes = collectEpisodes($);
     return episodes.reverse();
 }
 

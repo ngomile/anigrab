@@ -16,15 +16,8 @@ const DIRECT_DL_REG = /https?:\/\/\w\w+\.animeout.*?\.mkv/;
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animeout.xyz/' });
 
-async function search(query) {
+function collectSearchResults($) {
     let searchResults = [];
-    const params = { 's': query, 'post_type': 'post' };
-    const searchText = await cloudscraper.get(SEARCH_URL, {
-        qs: params,
-        headers: DEFAULT_HEADERS
-    });
-
-    const $ = cheerio.load(searchText);
     $('div.post-content').each(function (ind, element) {
         const poster = $(this).find('img').attr('src') || 'N/A';
         const title = $(this).find('h3.post-title a').text();
@@ -34,11 +27,19 @@ async function search(query) {
     return searchResults;
 }
 
-async function getAnime(url) {
-    let episodes = [];
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+async function search(query) {
+    const params = { 's': query, 'post_type': 'post' };
+    const searchText = await cloudscraper.get(SEARCH_URL, {
+        qs: params,
+        headers: DEFAULT_HEADERS
+    });
+    const $ = cheerio.load(searchText);
+    let searchResults = collectSearchResults($);
+    return searchResults;
+}
 
-    const $ = cheerio.load(page);
+function collectEpisodes($) {
+    let episodes = [];
     $('article.post a').each(function (ind, element) {
         const url = $(this).attr('href');
         if (!DIRECT_DL_REG.test(url)) return;
@@ -46,6 +47,13 @@ async function getAnime(url) {
         const title = urlParts[urlParts.length - 1].replace('.mkv', '');
         episodes.push({ title: title, url: url });
     });
+    return episodes;
+}
+
+async function getAnime(url) {
+    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const $ = cheerio.load(page);
+    let episodes = collectEpisodes($);
     return episodes;
 }
 
