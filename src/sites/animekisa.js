@@ -4,6 +4,10 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
+    SearchResult
+} = require('./common');
+
+const {
     getHeaders,
     extractVidstream,
     formatQualities
@@ -27,7 +31,8 @@ function collectSearchResults($) {
         const poster = `${SITE_URL}${$(this).find('img').attr('src')}`;
         // Avoid putting garbage result into search results
         if (url === SITE_URL + '/') return;
-        searchResults.push({ title, url, poster });
+        const searchResult = new SearchResult(title, url, poster);
+        searchResults.push(searchResult);
     });
     return searchResults;
 }

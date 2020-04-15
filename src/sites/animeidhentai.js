@@ -4,6 +4,10 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
+    SearchResult
+} = require('./common');
+
+const {
     extractKsplayer,
     getHeaders,
     formatQualities
@@ -25,7 +29,8 @@ function collectSearchResults($) {
         const poster = $(this).find('img').attr('src');
         // Simply doing $(this).find('a') isn't working for some reason
         const [, url] = $(this).html().match(URL_REG);
-        searchResults.push({ title, url, poster });
+        const searchResult = new SearchResult(title, url, poster)
+        searchResults.push(searchResult);
     });
 
     return searchResults;

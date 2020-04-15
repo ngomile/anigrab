@@ -3,6 +3,10 @@
 const cloudscraper = require('cloudscraper');
 
 const {
+    SearchResult
+} = require('./common');
+
+const {
     getHeaders,
     formatQualities
 } = require('../utils');
@@ -21,12 +25,10 @@ const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animepahe.com/' });
 
 // Formats animepahe search results
 function handleSearchResult(searchResult) {
-    return {
-        title: searchResult.title || 'N/A',
-        url: `${ANIME_URL}${searchResult.slug}`,
-        poster: searchResult.image || 'N/A',
-        status: searchResult.status || 'N/A'
-    }
+    const title = searchResult.title;
+    const url = `${ANIME_URL}${searchResult.slug}`;
+    const poster = searchResult.image;
+    return SearchResult(title, url, poster);
 }
 
 // Returns search results from animepahe for the given query

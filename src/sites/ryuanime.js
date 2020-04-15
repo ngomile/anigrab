@@ -4,6 +4,10 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
+    SearchResult
+} = require('./common');
+
+const {
     getHeaders,
     formatQualities
 } = require('../utils');
@@ -17,11 +21,10 @@ const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www4.ryuanime.com/' });
 function collectSearchResults($) {
     let searchResults = [];
     $('.list-inline a').each(function (ind, elemenet) {
-        searchResults.push({
-            title: $(this).text(),
-            url: $(this).attr('href'),
-            poster: 'N/A'
-        });
+        const title = $(this).text();
+        const url = $(this).attr('href');
+        const searchResult = SearchResult(title, url);
+        searchResults.push(searchResult);
     });
     return searchResults;
 }
