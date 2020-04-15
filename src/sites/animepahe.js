@@ -3,7 +3,8 @@
 const cloudscraper = require('cloudscraper');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -28,7 +29,7 @@ function handleSearchResult(searchResult) {
     const title = searchResult.title;
     const url = `${ANIME_URL}${searchResult.slug}`;
     const poster = searchResult.image;
-    return SearchResult(title, url, poster);
+    return new SearchResult(title, url, poster);
 }
 
 // Returns search results from animepahe for the given query
@@ -52,12 +53,11 @@ function getEpisodes(title, url, animeData) {
     let episodes = [];
     const data = animeData.data ? animeData.data : [];
 
-    for (const { episode: episodeNum, id, snapshot: poster } of data) {
-        episodes.push({
-            title: `${title} Episode ${episodeNum}`,
-            url: `${url}/${id}`,
-            poster: poster
-        });
+    for (const { episode: episodeNum, id } of data) {
+        const _title = `${title} Episode ${episodeNum}`;
+        const _url = `${url}/${id}`;
+        const episode = new Episode(_title, _url);
+        episodes.push(episode);
     }
     return episodes;
 }

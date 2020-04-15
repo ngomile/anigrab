@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -23,7 +24,7 @@ function collectSearchResults($) {
     $('.list-inline a').each(function (ind, elemenet) {
         const title = $(this).text();
         const url = $(this).attr('href');
-        const searchResult = SearchResult(title, url);
+        const searchResult = new SearchResult(title, url);
         searchResults.push(searchResult);
     });
     return searchResults;
@@ -44,7 +45,8 @@ function collectEpisodes($) {
         // Only getting subbed for now
         if (!title.includes('Sub')) return;
         let url = $(this).attr('href');
-        episodes.push({ title, url });
+        const episode = new Episode(title, url);
+        episodes.push(episode);
     });
     return episodes;
 }

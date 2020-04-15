@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -50,7 +51,8 @@ function collectEpisodes($) {
         if (!DIRECT_DL_REG.test(url)) return;
         const urlParts = url.split('/');
         const title = urlParts[urlParts.length - 1].replace('.mkv', '');
-        episodes.push({ title: title, url: url });
+        const episode = new Episode(title, url);
+        episodes.push(episode);
     });
     return episodes;
 }

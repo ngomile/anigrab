@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -28,7 +29,7 @@ function collectSearchResults($) {
         const title = $(this).find('h3 a').first().text();
         const url = $(this).find('h3 a').first().attr('href');
         const poster = $(this).find('img').attr('src');
-        const searchResult = SearchResult(title, url, poster)
+        const searchResult = new SearchResult(title, url, poster)
         searchResults.push(searchResult);
     });
     return searchResults;
@@ -50,7 +51,8 @@ function collectEpisodes($, title) {
     $('.wp-manga-chapter').each(function (ind, element) {
         const episodeNum = $(this).find('a').text().trim();
         const url = $(this).find('a').attr('href');
-        episodes.push({ title: `${title} - ${episodeNum}`, url: url });
+        const episode = new Episode(`${title} - ${episodeNum}`, url);
+        episodes.push(episode);
     });
     return episodes;
 }

@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -32,7 +33,7 @@ function collectSearchResults($) {
         const url = $(this).find('.ss-title').attr('href');
         let poster = $(this).find('.thumbnail-recent_search').attr('style');
         [, poster] = poster.match(/"([^"]+)/);
-        const searchResult = SearchResult(title, url, poster);
+        const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
     return searchResults;
@@ -57,7 +58,8 @@ function collectEpisodes($, animeName) {
         const title = `${animeName} Episode ${episodeNum}`.replace('  ', ' ');
         let url = $(this).attr('href').trim();
         url = `${SITE_URL}${url}`;
-        episodes.push({ title, url });
+        const episode = new Episode(title, url);
+        episodes.push(episode);
     });
     return episodes;
 }

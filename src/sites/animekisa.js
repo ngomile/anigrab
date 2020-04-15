@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -54,7 +55,8 @@ function collectEpisodes($, title) {
         const episodeNum = $(this).find('.infoept2 .centerv').text();
         const episodeTitle = `${title} Episode ${episodeNum}`;
         const url = `${SITE_URL}/${$(this).attr('href')}`;
-        episodes.push({ title: episodeTitle, url });
+        const episode = new Episode(episodeTitle, url);
+        episodes.push(episode);
     });
     return episodes;
 }

@@ -4,7 +4,8 @@ const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
 const {
-    SearchResult
+    SearchResult,
+    Episode
 } = require('./common');
 
 const {
@@ -50,7 +51,8 @@ function collectEpisodes($) {
     $('.hentai').each(function (ind, element) {
         const title = $(this).find('h2').text();
         const [, url] = $(this).html().match(URL_REG);
-        episodes.push({ title, url });
+        const episode = new Episode(title, url);
+        episodes.push(episode);
     });
     return episodes;
 }
