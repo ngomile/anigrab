@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 
 const {
     SearchResult,
+    Anime,
     Episode
 } = require('./common');
 
@@ -58,15 +59,16 @@ function collectEpisodes($, title) {
         const episode = new Episode(episodeTitle, url);
         episodes.push(episode);
     });
-    return episodes;
+    return episodes.reverse();
 }
 
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
-    const title = $('h1.infodes').first().text();
-    let episodes = collectEpisodes($, title);
-    return episodes.reverse();
+    const title = $('h1.infodes').text();
+    const episodes = collectEpisodes($, title);
+    const anime = new Anime(title, episodes);
+    return anime;
 }
 
 async function getQualities(url) {

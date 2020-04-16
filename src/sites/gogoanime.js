@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 
 const {
     SearchResult,
+    Anime,
     Episode
 } = require('./common');
 
@@ -61,13 +62,13 @@ function collectEpisodes($, animeName) {
         const episode = new Episode(title, url);
         episodes.push(episode);
     });
-    return episodes;
+    return episodes.reverse();
 }
 
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     let $ = cheerio.load(page);
-    const animeName = $('title').text().replace(' at Gogoanime', '');
+    const title = $('h1').text();
     const movieID = $('#movie_id').first().attr('value');
     const [, alias] = url.match(ALIAS_REG);
     const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias: alias };
@@ -77,8 +78,9 @@ async function getAnime(url) {
     });
 
     $ = cheerio.load(response);
-    let episodes = collectEpisodes($, animeName);
-    return episodes.reverse();
+    const episodes = collectEpisodes($, title);
+    const anime = new Anime(title, episodes);
+    return anime;
 }
 
 async function getQualities(url) {

@@ -4,6 +4,7 @@ const cloudscraper = require('cloudscraper');
 
 const {
     SearchResult,
+    Anime,
     Episode
 } = require('./common');
 
@@ -17,7 +18,7 @@ const API_URL = 'https://animepahe.com/api';
 
 const ANIME_ID_REG = /&id=(\d+)/;
 const SERVER_REG = /data-provider="([^"]+)/g;
-const ID_SESSION_REG = /getEmbeds\((\d+), "([^"]+)/g;
+const ID_SESSION_REG = /getEmbeds\((\d+), "([^"]+)/;
 const TITLE_REG = /<h1>([^<]+)/;
 
 const SUPPORTED_SERVERS = ['kwik', 'mp4upload'];
@@ -65,8 +66,8 @@ function getEpisodes(title, url, animeData) {
 // Collects relevant details of anime such as title, description and episodes
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
-    const [, title,] = TITLE_REG.exec(page);
-    const [, animeID,] = ANIME_ID_REG.exec(page);
+    const [, title] = TITLE_REG.exec(page);
+    const [, animeID] = ANIME_ID_REG.exec(page);
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
 
     let pageData = await getPageData(animeID);
@@ -81,7 +82,8 @@ async function getAnime(url) {
         }
     }
 
-    return episodes;
+    const anime = new Anime(title, episodes);
+    return anime;
 }
 
 // Extracts all the servers that are hosting the episode
@@ -90,7 +92,7 @@ function getServers(page) {
     do {
         match = SERVER_REG.exec(page);
         if (match) {
-            [, server,] = match;
+            [, server] = match;
             servers.push(server);
         }
     } while (match);
@@ -116,10 +118,10 @@ async function getEpisodeQualities(server, episodeID, session) {
 
 // Extracts episode data for animepahe
 async function getQualities(url) {
-    let qualities;
+    let qualities = new Map();
     const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const servers = getServers(episodePage);
-    const [, episodeID, session,] = ID_SESSION_REG.exec(episodePage);
+    const [, episodeID, session] = ID_SESSION_REG.exec(episodePage);
 
     if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones

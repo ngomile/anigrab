@@ -21,7 +21,19 @@ class Episode {
     }
 }
 
+class Anime {
+    constructor(title, episodes) {
+        this.title = title;
+        this.episodes = episodes;
+    }
+
+    toString() {
+        return this.title;
+    }
+}
+
 module.exports = {
     SearchResult,
+    Anime,
     Episode
 }
