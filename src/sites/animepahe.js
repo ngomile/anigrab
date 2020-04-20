@@ -78,7 +78,7 @@ async function getAnime(url) {
         startPage++, lastPage++;
         for (let i = startPage; i < lastPage; i++) {
             pageData = await getPageData(animeID, i);
-            episodes = episodes.concat(getEpisodes(title, url, pageData));
+            episodes.push(...getEpisodes(title, url, pageData));
         }
     }
 
