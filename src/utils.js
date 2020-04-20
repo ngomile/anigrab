@@ -63,9 +63,28 @@ function formatQualities(qualities, extra) {
     return qualities;
 }
 
+function parseEpisodeGrammar(episodes, grammar = '') {
+    let parsedEpisodes = [];
+    const SINGLE_EPISODE_REG = /^(\d+)$/;
+    const RANGED_EPISODES_REG = /^(\d+)?:(\d+)?$/;
+    for (let episodeGrammar of grammar.split(',')) {
+        episodeGrammar = episodeGrammar.trim();
+        if (SINGLE_EPISODE_REG.test(episodeGrammar)) {
+            let [, num] = SINGLE_EPISODE_REG.exec(episodeGrammar);
+            num = parseInt(num) - 1;
+            if (num < episodes.length) parsedEpisodes.push(episodes[num]);
+        } else if (RANGED_EPISODES_REG.test(episodeGrammar)) {
+            let [, start, end] = RANGED_EPISODES_REG.exec(episodeGrammar);
+            parsedEpisodes.push(...episodes.slice(start - 1, end));
+        } else if (grammar.trim() === '') parsedEpisodes = episodes;
+    }
+    return parsedEpisodes;
+}
+
 module.exports = {
     extractKsplayer,
     extractVidstream,
     getHeaders,
-    formatQualities
+    formatQualities,
+    parseEpisodeGrammar
 }
