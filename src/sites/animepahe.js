@@ -29,7 +29,7 @@ const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animepahe.com/' });
 function handleSearchResult(searchResult) {
     const title = searchResult.title;
     const url = `${ANIME_URL}${searchResult.slug}`;
-    const poster = searchResult.image;
+    const poster = searchResult.poster;
     return new SearchResult(title, url, poster);
 }
 
