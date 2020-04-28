@@ -18,7 +18,7 @@ const SEARCH_URL = 'https://www.animeout.xyz/';
 
 const QUALITY_REG = /((?:360|480|720|1080)p)/;
 const REAL_URL_REG = /var url = "([^"]+)/;
-const DIRECT_DL_REG = /https?:\/\/\w+\.animeout.*?\.mkv/;
+const DIRECT_DL_REG = /https?:\/\/\w+\.animeout.*?\.mkv$/;
 
 const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animeout.xyz/' });
 
