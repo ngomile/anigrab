@@ -43,7 +43,7 @@ async function search(query) {
     const search = `${SEARCH_URL}${query}`;
     const response = await cloudscraper.get(search, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(response);
-    let searchResults = collectSearchResults($);
+    const searchResults = collectSearchResults($);
     return searchResults;
 }
 
