@@ -13,8 +13,10 @@
   "keywords": [
     "anime",
     "free",
-    "downloader",
-    "fast"
+    "extractor",
+    "animepahe",
+    "gogoanime",
+    "animeout"
   ],
   "author": "Noel Gomile",
   "license": "Unlicense",
@@ -27,6 +29,10 @@
     "cheerio": "^1.0.0-rc.3",
     "cloudscraper": "^4.6.0",
     "request": "^2.88.2",
-    "request-promise": "^4.2.5"
+    "request-promise": "^4.2.5",
+    "yargs": "^15.3.1"
+  },
+  "bin": {
+    "anigrab": "./src/cli/index.js"
   }
 }
