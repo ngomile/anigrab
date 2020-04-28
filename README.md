@@ -2,21 +2,21 @@
 
 A free and open source library to extract video links from well known anime sites. Has a simple command line interface to write the urls to a file. More will be added later. Taking inspiration from [anime-downloader](https://github.com/vn-ki/anime-downloader)
 
-##Sites
-*animeidhentai
-*animekisa
-*animeout
-*animepahe
-*gogoanime
-*hentaihaven
-*ryuanime
+## Sites
+* animeidhentai
+* animekisa
+* animeout
+* animepahe
+* gogoanime
+* hentaihaven
+* ryuanime
 
-##Installation
+## Installation
 Sorry working on that!
 
-##Usage
+## Usage
 
-###Search, Get the anime and get the qualities
+### Search, Get the anime and get the qualities
 ```javascript
 const { siteLoader } = require('./sites');
 const { search, getAnime, getQualities } = siteLoader('animepahe');
@@ -31,7 +31,7 @@ const { search, getAnime, getQualities } = siteLoader('animepahe');
 
 ```
 
-###CLI
+### CLI
 Using the command line
 ```
 anigrab naruto -e 1,90,100:150 -w
