@@ -1,13 +1,18 @@
 'use strict';
 
+const readline = require('readline');
+const { promisify } = require('util');
+
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
+
+const { USER_AGENTS } = require('./user_agents');
 
 const VIDSTREAM_DOWNLOAD_REG = /(https:\/\/vidstreaming.io\/download[^"]+)/;
 
 function getHeaders(headers = {}) {
     return {
-        'User-Agent': 'Mozilla/5.0 CK={} (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        'User-Agent': USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
         ...headers
     }
 }
@@ -81,10 +86,33 @@ function parseEpisodeGrammar(episodes, grammar = '') {
     return parsedEpisodes;
 }
 
+async function input(prompt) {
+    // Taken from https://gist.github.com/tinovyatkin/4316e302d8419186fe3c6af3f26badff
+    readline.Interface.prototype.question[promisify.custom] = function (prompt) {
+        return new Promise(resolve =>
+            readline.Interface.prototype.question.call(this, prompt, resolve)
+        );
+    };
+
+    readline.Interface.prototype.questionAsync = promisify(
+        readline.Interface.prototype.question
+    );
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    const answer = await rl.questionAsync(prompt);
+    rl.close();
+    return answer;
+}
+
 module.exports = {
     extractKsplayer,
     extractVidstream,
     getHeaders,
     formatQualities,
-    parseEpisodeGrammar
+    parseEpisodeGrammar,
+    input
 }
