@@ -9,7 +9,8 @@ const { siteLoader } = require('../sites/');
 const { extractorLoader } = require('../extractors/');
 const {
     parseEpisodeGrammar,
-    input
+    input,
+    executeTasks
 } = require('../utils');
 
 const argv = yargs.
@@ -87,8 +88,10 @@ async function main() {
     }
 
     const anime = await site.getAnime(animeurl);
-    for (const { url: episodeurl } of parseEpisodeGrammar(anime.episodes, argv.episodes)) {
-        const { qualities } = await site.getQualities(episodeurl);
+    const episodes = parseEpisodeGrammar(anime.episodes, argv.episodes);
+    const args = episodes.map(({ url }) => [url]);
+    const qualitiesList = await executeTasks(site.getQualities, ...args);
+    for (const { qualities } of qualitiesList) {
         let quality = qualities.get(argv.quality);
         if (!quality) {
             console.log(`Quality ${argv.quality} not found. Trying other qualities`);
