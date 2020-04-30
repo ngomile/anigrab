@@ -15,18 +15,29 @@ const {
     extractVidstream
 } = require('../utils');
 
+/** The url of the site */
 const SITE_URL = 'https://www16.gogoanime.io';
+/** The url to perform search queries on */
 const SEARCH_URL = 'https://ajax.gogocdn.net/site/loadAjaxSearch';
+/** The url to make api calls to */
 const API_URL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 
+/** Regular expression to match the alias of the anime */
 const ALIAS_REG = /category\/(.*)$/;
+/** Mapping of providers to associated regular expressions */
 const SOURCES_REG = new Map([
     ['vidstream', /href="(https:\/\/vidstreaming.io\/download.*)" target/],
     ['mp4upload', /data-video="(.*)"> Mp4Upload/]
 ]);
 
-const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www16.gogoanime.io/' });
+const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www16.gogoanime.io/' });
 
+/**
+ * Collects the search results
+ * 
+ * @param {CheerioStatic} $ 
+ * @returns {SearchResult[]}
+ */
 function collectSearchResults($) {
     let searchResults = [];
     $('.list_search_ajax').each(function (ind, element) {
@@ -40,6 +51,12 @@ function collectSearchResults($) {
     return searchResults;
 }
 
+/**
+ * Executes search query for gogoanime
+ * 
+ * @param {string} query 
+ * @returns {Promise<SearchResult[]>}
+ */
 async function search(query) {
     const params = { keyword: query, id: '-1', link_web: 'https://www16.gogoanime.io/' };
     let searchResponse = await cloudscraper.get(SEARCH_URL, {
@@ -52,6 +69,12 @@ async function search(query) {
     return searchResults;
 }
 
+/**
+ * Collects the episodes of the anime
+ * 
+ * @param {CheerioStatic} $ 
+ * @param {string} animeName 
+ */
 function collectEpisodes($, animeName) {
     let episodes = [];
     $('#episode_related a').each(function (ind, element) {
@@ -65,13 +88,19 @@ function collectEpisodes($, animeName) {
     return episodes.reverse();
 }
 
+/**
+ * Extracts the title and episodes from gogoanime
+ *
+ * @param {string} url
+ * @returns {Promise<Anime>}
+ */
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     let $ = cheerio.load(page);
     const title = $('h1').text();
     const movieID = $('#movie_id').first().attr('value');
     const [, alias] = url.match(ALIAS_REG);
-    const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias: alias };
+    const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias };
     const response = await cloudscraper.get(API_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
@@ -83,6 +112,13 @@ async function getAnime(url) {
     return anime;
 }
 
+/**
+ * Extracts the url and referer and extractor for the episode
+ * with it's associated quality from gogoanime
+ *
+ * @param {string} url
+ * @returns {Promise<Map<string, any>>}
+ */
 async function getQualities(url) {
     let qualities = new Map(), extractor = 'universal';
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });

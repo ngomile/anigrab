@@ -10,38 +10,65 @@ const {
 
 const {
     getHeaders,
-    formatQualities
+    formatQualities,
+    range,
+    executeTasks
 } = require('../utils');
 
+/** Part of the url for anime combined with slug to make full url */
 const ANIME_URL = 'https://animepahe.com/anime/';
+/** The url to make api calls on */
 const API_URL = 'https://animepahe.com/api';
 
+/** Regular expression to match the id of the anime */
 const ANIME_ID_REG = /&id=(\d+)/;
+/** Regular expression to match the server the episode is on */
 const SERVER_REG = /data-provider="([^"]+)/g;
+/** Regular expression to extract the id and session for the episode */
 const ID_SESSION_REG = /getEmbeds\((\d+), "([^"]+)/;
+/** Regular expresion to find the title of the anime */
 const TITLE_REG = /<h1>([^<]+)/;
 
+/** List of supported servers */
 const SUPPORTED_SERVERS = ['kwik', 'mp4upload'];
 
-const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animepahe.com/' });
+const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animepahe.com/' });
 
-// Formats animepahe search results
-function handleSearchResult(searchResult) {
-    const title = searchResult.title;
-    const url = `${ANIME_URL}${searchResult.slug}`;
-    const poster = searchResult.poster;
+/**
+ * Handles correctly extracting search result from animepahe
+ * 
+ * @param {object} obj
+ * @param {string} obj.title
+ * @param {string} obj.slug
+ * @param {string} obj.poster
+ * @returns {SearchResult}
+ */
+function handleSearchResult({ title, slug, poster }) {
+    const url = `${ANIME_URL}${slug}`;
     return new SearchResult(title, url, poster);
 }
 
-// Returns search results from animepahe for the given query
+/**
+ * Executes a search query on animepahe
+ * 
+ * @param {string} query
+ * @returns {Promise<SearchResult[]>}
+ */
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
     const response = await cloudscraper.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS });
     const results = JSON.parse(response);
+    // Search results are stored in the data field
     return results.data ? results.data.map(handleSearchResult) : [];
 }
 
-// Returns page information from animepahe api
+/**
+ * Gets the episode data for a given page
+ * 
+ * @param {string|number} animeID 
+ * @param {number} page 
+ * @returns {Promise<any>}
+ */
 async function getPageData(animeID, page = 1) {
     const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
     const response = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
@@ -49,12 +76,20 @@ async function getPageData(animeID, page = 1) {
     return data;
 }
 
-// Retrieves episode data from animepahe api page results
+/**
+ * Extracts the episodes from anime data
+ * 
+ * @param {string} title 
+ * @param {string} url 
+ * @param {object} animeData 
+ * @returns {Episode[]}
+ */
 function getEpisodes(title, url, animeData) {
     let episodes = [];
     const data = animeData.data ? animeData.data : [];
 
     for (const { episode: episodeNum, id } of data) {
+        // Have to correct format the title and url
         const _title = `${title} Episode ${episodeNum}`;
         const _url = `${url}/${id}`;
         const episode = new Episode(_title, _url);
@@ -63,7 +98,12 @@ function getEpisodes(title, url, animeData) {
     return episodes;
 }
 
-// Collects relevant details of anime such as title, description and episodes
+/**
+ * Extracts the title and episodes from animepahe
+ *
+ * @param {string} url
+ * @returns {Promise<Anime>}
+ */
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const [, title] = TITLE_REG.exec(page);
@@ -74,10 +114,13 @@ async function getAnime(url) {
     let episodes = getEpisodes(title, url, pageData);
     let startPage = pageData.current_page, lastPage = pageData.last_page;
 
+    // In case there is more than one page extract the rest of the episodes
     if (startPage < lastPage) {
         startPage++, lastPage++;
-        for (let i = startPage; i < lastPage; i++) {
-            pageData = await getPageData(animeID, i);
+        // Speed up collecting of other episodes
+        let args = range(startPage, lastPage).map(pageNum => [animeID, pageNum]);
+        const pageDataList = await executeTasks(getPageData, ...args);
+        for (pageData of pageDataList) {
             episodes.push(...getEpisodes(title, url, pageData));
         }
     }
@@ -86,7 +129,12 @@ async function getAnime(url) {
     return anime;
 }
 
-// Extracts all the servers that are hosting the episode
+/**
+ * Finds the servers that are hosting the episode
+ * 
+ * @param {string} page 
+ * @returns {string[]}
+ */
 function getServers(page) {
     let servers = [], match, server;
     do {
@@ -99,11 +147,18 @@ function getServers(page) {
     return servers;
 }
 
-// Extracts the qualities for a given episode returning a mapping of
-// qualities and their associated urls
+
+/**
+ * Extracts the quality mapping to it's url from the api
+ * 
+ * @param {string} server 
+ * @param {string|number} episodeID 
+ * @param {string} session 
+ * @returns {Promise<Map<string, string>>}
+ */
 async function getEpisodeQualities(server, episodeID, session) {
     let qualities = new Map();
-    const params = { 'id': episodeID, 'm': 'embed', 'p': server, 'session': session };
+    const params = { id: episodeID, m: 'embed', p: server, session: session };
     const apiResult = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
 
     if (apiResult === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
@@ -116,7 +171,13 @@ async function getEpisodeQualities(server, episodeID, session) {
     return qualities;
 }
 
-// Extracts episode data for animepahe
+/**
+ * Extracts the url and referer and extractor for the episode
+ * with it's associated quality from animepahe
+ *
+ * @param {string} url
+ * @returns {Promise<Map<string, any>>}
+ */
 async function getQualities(url) {
     let qualities = new Map();
     const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });

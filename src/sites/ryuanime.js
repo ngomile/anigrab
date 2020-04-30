@@ -14,12 +14,20 @@ const {
     formatQualities
 } = require('../utils');
 
+/** The url to make search queries to */
 const SEARCH_URL = 'https://www4.ryuanime.com/search';
 
+/** Regular expression to match the sources of the video */
 const SOURCES_REG = /episode_videos = (\[.*\])/;
 
-const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://www4.ryuanime.com/' });
+const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www4.ryuanime.com/' });
 
+/**
+ * Collects search results of the anime
+ * 
+ * @param {CheerioStatic} $ 
+ * @returns {SearchResult[]}
+ */
 function collectSearchResults($) {
     let searchResults = [];
     $('.list-inline a').each(function (ind, elemenet) {
@@ -31,6 +39,12 @@ function collectSearchResults($) {
     return searchResults;
 }
 
+/**
+ * Executes search query on ryuanime
+ * 
+ * @param {string} query 
+ * @returns {Promise<SearchResult[]>}
+ */
 async function search(query) {
     const params = { term: query };
     const searchPage = await cloudscraper.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
@@ -39,11 +53,17 @@ async function search(query) {
     return searchResults;
 }
 
+/**
+ * Collects the episodes of the anime
+ * 
+ * @param {CheerioStatic} $ 
+ * @returns {Episode[]}
+ */
 function collectEpisodes($) {
     let episodes = [];
     $('.card-body .row a').each(function (ind, element) {
         let title = $(this).text();
-        // Only getting subbed for now
+        // Only getting subbed, should be user configurable
         if (!title.includes('Sub')) return;
         let url = $(this).attr('href');
         const episode = new Episode(title, url);
@@ -52,6 +72,12 @@ function collectEpisodes($) {
     return episodes.reverse();
 }
 
+/**
+ * Extracts the title and episodes from ryuanime
+ * 
+ * @param {string} url 
+ * @returns {Promise<Anime>}
+ */
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
@@ -61,6 +87,13 @@ async function getAnime(url) {
     return anime;
 }
 
+/**
+ * Extracts the url and referer and extractor for the episode
+ * with it's associated quality from ryuanime
+ *
+ * @param {string} url
+ * @returns {Promise<Map<string, any>>}
+ */
 async function getQualities(url) {
     let qualities = new Map();
     const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });

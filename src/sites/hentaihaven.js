@@ -14,16 +14,28 @@ const {
     formatQualities
 } = require('../utils');
 
+/** The url to make search queries to */
 const SEARCH_URL = 'https://hentaihaven.xxx/';
+/** The url to make api calls to */
 const API_URL = 'https://hentaihaven.xxx/wp-admin/admin-ajax.php';
 
+/** Regular expression to extract player source  */
 const PLAYER_SRC_REG = /iframe src="([^"]+)/;
+/** Regular expression to extract json part of video data  */
 const VIDEO_DATA_REG = /\$\.ajax\((\{.*\})/;
+/** Regular expression to match the form parts necessary to get real source */
 const FORM_VALS_REG = /action:'(.*)',a:'(.*)',b:'(.*)'/;
+/** Regular expression to extract json of source */
 const SOURCES_REG = /(\{.*\})/;
 
-const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://hentaihaven.xxx/hentai/' });
+const DEFAULT_HEADERS = getHeaders({ Referer: 'https://hentaihaven.xxx/hentai/' });
 
+/**
+ * Collects search results
+ * 
+ * @param {CheerioStatic} $ 
+ * @returns {SearchResult[]}
+ */
 function collectSearchResults($) {
     let searchResults = [];
     $('.c-tabs-item__content').each(function (ind, element) {
@@ -36,6 +48,12 @@ function collectSearchResults($) {
     return searchResults;
 }
 
+/**
+ * Executes search query for hentaihaven
+ * 
+ * @param {string} query 
+ * @returns {Promise<SearchResult[]>}
+ */
 async function search(query) {
     const params = { s: query, post_type: 'wp-manga' };
     const searchResponse = await cloudscraper.get(SEARCH_URL, {
@@ -47,6 +65,12 @@ async function search(query) {
     return searchResults;
 }
 
+/**
+ * Collects the episodes of the anime
+ * 
+ * @param {CheerioStatic} $ 
+ * @param {string} title 
+ */
 function collectEpisodes($, title) {
     let episodes = [];
     $('.wp-manga-chapter').each(function (ind, element) {
@@ -58,6 +82,12 @@ function collectEpisodes($, title) {
     return episodes;
 }
 
+/**
+ * Extracts the title and episodes from hentaihaven
+ *
+ * @param {string} url
+ * @returns {Promise<Anime>}
+ */
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
@@ -67,6 +97,13 @@ async function getAnime(url) {
     return anime;
 }
 
+/**
+ * Extracts the url and referer and extractor for the episode
+ * with it's associated quality from hentaihaven
+ *
+ * @param {string} url
+ * @returns {Promise<Map<string, any>>}
+ */
 async function getQualities(url) {
     let qualities = new Map();
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
@@ -78,7 +115,7 @@ async function getQualities(url) {
     const formData = { action, a, b };
 
     let sourceData = await cloudscraper.post(API_URL, {
-        headers: getHeaders({ 'Referer': playerSrc }),
+        headers: getHeaders({ Referer: playerSrc }),
         formData: formData
     });
 

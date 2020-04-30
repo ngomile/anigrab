@@ -14,17 +14,28 @@ const {
     formatQualities
 } = require('../utils');
 
+/** The url to perform search queries on  */
 const SEARCH_URL = 'https://www.animeout.xyz/';
 
+/** Regular expression that tries to find what quality the episode is */
 const QUALITY_REG = /((?:360|480|720|1080)p)/;
+/** Regular expression that matches the actual video url */
 const REAL_URL_REG = /var url = "([^"]+)/;
+/** Regular expression to match urls that are direct download links */
 const DIRECT_DL_REG = /https?:\/\/\w+\.animeout.*?\.mkv$/;
 
-const DEFAULT_HEADERS = getHeaders({ 'Referer': 'https://animeout.xyz/' });
+const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animeout.xyz/' });
 
+/**
+ * Collects the search results from animeout
+ * 
+ * @param {CheerioStatic} $
+ * @returns {SearchResult[]}
+ */
 function collectSearchResults($) {
     let searchResults = [];
     $('div.post-content').each(function (ind, element) {
+        // Poster may not be found sometimes
         const poster = $(this).find('img').attr('src') || 'N/A';
         const title = $(this).find('h3.post-title a').text();
         const url = $(this).find('h3.post-title a').attr('href');
@@ -34,8 +45,14 @@ function collectSearchResults($) {
     return searchResults;
 }
 
+/**
+ * Executes a search query on animeout
+ * 
+ * @param {string} query
+ * @returns {Promise<SearchResult[]>}
+ */
 async function search(query) {
-    const params = { 's': query, 'post_type': 'post' };
+    const params = { s: query, post_type: 'post' };
     const searchText = await cloudscraper.get(SEARCH_URL, {
         qs: params,
         headers: DEFAULT_HEADERS
@@ -45,11 +62,18 @@ async function search(query) {
     return searchResults;
 }
 
+/**
+ * Collects episodes from animeout
+ * 
+ * @param {CheerioStatic} $
+ * @returns {Episode[]} 
+ */
 function collectEpisodes($) {
     let episodes = [];
     $('article.post a').each(function (ind, element) {
         const url = $(this).attr('href');
         if (!DIRECT_DL_REG.test(url)) return;
+        // Title is taken from the direct download link
         const urlParts = url.split('/');
         const title = urlParts[urlParts.length - 1].replace('.mkv', '');
         const episode = new Episode(title, url);
@@ -58,6 +82,12 @@ function collectEpisodes($) {
     return episodes;
 }
 
+/**
+ * Extracts the title and episodes from animeout
+ * 
+ * @param {string} url 
+ * @returns {Promise<Anime>}
+ */
 async function getAnime(url) {
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
@@ -67,6 +97,13 @@ async function getAnime(url) {
     return anime;
 }
 
+/**
+ * Extracts the url and referer and extractor for the episode
+ * with it's associated quality from animeout
+ *
+ * @param {string} url
+ * @returns {Promise<Map<string, any>>}
+ */
 async function getQualities(url) {
     let qualities = new Map();
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
@@ -75,6 +112,7 @@ async function getQualities(url) {
     let realDLPage = $('a.btn').first().attr('href');
     realDLPage = await cloudscraper.get(realDLPage, { headers: DEFAULT_HEADERS });
 
+    // Try to find the quality on for the episode otherwise unknown quality
     let quality = QUALITY_REG.exec(realDLPage);
     if (quality) {
         [, quality] = quality;
