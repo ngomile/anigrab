@@ -111,7 +111,7 @@ async function main() {
         const { extract } = extractorLoader(quality.extractor);
         const { url } = await extract(quality);
 
-        if (argv.url) {
+        if (argv.url && url !== '') {
             console.log(url);
         }
 
