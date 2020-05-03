@@ -19,8 +19,10 @@ exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
     let streamURL;
     const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
-    if (page.includes('File was deleted')) {
-        console.log(`The file has been deleted at ${url}`);
+    const deletedText = 'File was deleted';
+    const licensedText = 'This video is no longer available due to a copyright claim.';
+    if (page.includes(deletedText) || page.includes(licensedText)) {
+        console.log(`The file has been deleted or licensed at ${url}`);
         streamURL = '';
     } else {
         const [, obsfucatedJS] = page.match(/eval\((.*)\)/);
