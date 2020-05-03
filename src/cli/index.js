@@ -5,7 +5,10 @@ const fs = require('fs');
 
 const yargs = require('yargs');
 
-const { siteLoader } = require('../sites/');
+const {
+    siteLoader,
+    SITES
+} = require('../sites/');
 const { extractorLoader } = require('../extractors/');
 const {
     parseEpisodeGrammar,
@@ -37,7 +40,7 @@ const argv = yargs.
         's': {
             alias: 'site',
             default: 'animepahe',
-            describe: 'the site to get the anime from',
+            describe: `the site to get the anime from, choose ${SITES.join(', ')}`,
             type: 'string'
         },
         'u': {
