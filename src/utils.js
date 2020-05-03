@@ -6,7 +6,11 @@ const { promisify } = require('util');
 const cloudscraper = require('cloudscraper');
 const cheerio = require('cheerio');
 
-const { Episode } = require('./sites/common');
+// Is there a better way to get class information without having to require?
+const {
+    Episode,
+    SearchResult
+} = require('./sites/common');
 const { USER_AGENTS } = require('./user_agents');
 
 /** Regular expression to find the download url for vidstream */
@@ -184,7 +188,7 @@ function range(start, end) {
  * @param  {...any} args 
  */
 async function executeTasks(func, ...args) {
-    let results = []
+    let results = [];
     while (args.length) {
         const tasks = args.slice(0, 4).map(arg => func(...arg));
         for await (const result of tasks) {
@@ -195,6 +199,63 @@ async function executeTasks(func, ...args) {
     return results;
 }
 
+/**
+ * Given a list of search results, returns the url of the
+ * user selected search result
+ * 
+ * @param {SearchResult[]} searchResults
+ * @returns {string}
+ */
+async function pickSeachResult(searchResults) {
+    for (let i = 0; i < searchResults.length; i++) {
+        console.log(`${i + 1}. ${searchResults[i].title}`);
+    }
+
+    let choice = await input('Please select an anime [1]: ');
+    choice = parseInt(choice, 10);
+    while (choice < 1 || choice > searchResults.length) {
+        choice = await input(`Please pick a value between 1 and ${searchResults.length}: `);
+    }
+    return searchResults[--choice].url;
+}
+
+/**
+ * Given a mapping of qualities to an object with extractor, url
+ * and referer properties. The function picks the highest quality
+ * possible and returns the object that matched to the quality
+ * 
+ * @param {Map<string, any>} qualities
+ * @param {string} fallbackQualities
+ * @returns {any}
+ */
+function getOtherQuality(qualities, fallbackQualities = '') {
+    // Some sites may not specify a quality
+    let quality = qualities.get('unknown');
+    qualities.delete('unknown');
+
+    let otherQualites = [];
+    for (const otherQuality of qualities.keys()) {
+        if (fallbackQualities) {
+            if (fallbackQualities.includes(otherQuality)) {
+                otherQualites.push(otherQuality);
+            }
+            continue;
+        }
+        otherQualites.push(otherQuality);
+    }
+    // Places qualities from highest to lowest
+    otherQualites.reverse();
+
+    if (otherQualites.length) {
+        console.log(`${otherQualites[0]} selected`);
+        quality = qualities.get(otherQualites[0]);
+    } else if (quality !== undefined) {
+        console.log('Unknown quality will be used');
+    }
+
+    return quality;
+}
+
 module.exports = {
     extractKsplayer,
     extractVidstream,
@@ -203,5 +264,7 @@ module.exports = {
     parseEpisodeGrammar,
     input,
     range,
-    executeTasks
+    executeTasks,
+    pickSeachResult,
+    getOtherQuality
 }

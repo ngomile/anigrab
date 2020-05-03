@@ -9,8 +9,9 @@ const { siteLoader } = require('../sites/');
 const { extractorLoader } = require('../extractors/');
 const {
     parseEpisodeGrammar,
-    input,
-    executeTasks
+    pickSeachResult,
+    executeTasks,
+    getOtherQuality
 } = require('../utils');
 
 const argv = yargs.
@@ -44,6 +45,12 @@ const argv = yargs.
             deault: false,
             describe: 'prints stream url of episode',
             type: 'boolean'
+        },
+        'fb': {
+            alias: 'fallback',
+            default: '',
+            describe: 'comma separated string of qualities to choose if quality asked for is not found e.g 360p, 480p',
+            type: 'string'
         }
     })
     .help()
@@ -68,47 +75,30 @@ async function main() {
             console.log(`No search results found for ${animeurl}`);
             return;
         }
-        for (let i = 0; i < searchResults.length; i++) {
-            console.log(`${i + 1}. ${searchResults[i].title}`);
-        }
 
-        let choice = await input('Please select an anime [1]: ');
-        choice = parseInt(choice, 10);
-        if (choice >= 1 && choice <= searchResults.length) {
-            choice -= 1;
-            animeurl = searchResults[choice].url;
-        } else {
-            console.log(`Please pick a value between 1 and ${searchResults.length}`);
-            return;
-        }
+        animeurl = await pickSeachResult(searchResults);
     }
 
     if (argv.write) {
         stream = fs.createWriteStream('anime.txt', { flags: 'a' });
     }
 
+    console.log(`Extracting ${animeurl}`);
     const anime = await site.getAnime(animeurl);
     const episodes = parseEpisodeGrammar(anime.episodes, argv.episodes);
     const args = episodes.map(({ url }) => [url]);
     const qualitiesList = await executeTasks(site.getQualities, ...args);
+
     for (const { qualities } of qualitiesList) {
         let quality = qualities.get(argv.quality);
         if (!quality) {
             console.log(`Quality ${argv.quality} not found. Trying other qualities`);
-            quality = qualities.get('unknown');
-            qualities.delete('unknown');
-            let otherQualites = [];
-            for (const otherQuality of qualities.keys()) {
-                otherQualites.push(otherQuality);
-            }
-            otherQualites.reverse();
+            quality = getOtherQuality(qualities, argv.fallback);
+        }
 
-            if (otherQualites.length) {
-                console.log(`${otherQualites[0]} selected`);
-                quality = qualities.get(otherQualites[0]);
-            } else if (quality !== undefined) {
-                console.log('Unknown quality will be used');
-            }
+        if (!quality) {
+            console.log('Failed to find quality');
+            continue;
         }
 
         const { extract } = extractorLoader(quality.extractor);
