@@ -1,5 +1,6 @@
 'use strict';
 
+const { spawn } = require('child_process');
 const readline = require('readline');
 const { promisify } = require('util');
 
@@ -256,6 +257,35 @@ function getOtherQuality(qualities, fallbackQualities = '') {
     return quality;
 }
 
+/**
+ * Executes an external command
+ * 
+ * @param {string} cmd 
+ * @param {string[]} args 
+ */
+async function executeCommand(cmd, args = []) {
+    // Taken from https://stackoverflow.com/questions/58570325/how-to-turn-child-process-spawns-promise-syntax-to-async-await-syntax
+    const child = spawn(cmd, args);
+
+    for await (const chunk of child.stdout) {
+        // shows output on the same line
+        process.stdout.write(`${chunk}\r`);
+    }
+
+    let error = '';
+    for await (const chunk of child.stderr) {
+        error += chunk;
+    }
+
+    const exitCode = await new Promise((resolve, reject) => {
+        child.on('close', resolve);
+    });
+
+    if (exitCode) {
+        throw new Error(`subprocess error exit ${exitCode}, ${error}`);
+    }
+}
+
 module.exports = {
     extractKsplayer,
     extractVidstream,
@@ -266,5 +296,6 @@ module.exports = {
     range,
     executeTasks,
     pickSeachResult,
-    getOtherQuality
+    getOtherQuality,
+    executeCommand
 }
