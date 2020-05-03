@@ -18,7 +18,7 @@ const {
 /** The url of the site */
 const SITE_URL = 'https://www16.gogoanime.io';
 /** The url to perform search queries on */
-const SEARCH_URL = 'https://ajax.gogocdn.net/site/loadAjaxSearch';
+const SEARCH_URL = 'https://www18.gogoanime.io//search.html';
 /** The url to make api calls to */
 const API_URL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 
@@ -40,11 +40,11 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www16.gogoanime.io/' });
  */
 function collectSearchResults($) {
     let searchResults = [];
-    $('.list_search_ajax').each(function (ind, element) {
-        const title = $(this).find('.ss-title').text();
-        const url = $(this).find('.ss-title').attr('href');
-        let poster = $(this).find('.thumbnail-recent_search').attr('style');
-        [, poster] = poster.match(/"([^"]+)/);
+    $('.items .img').each(function (ind, element) {
+        const title = $(this).find('a').attr('title');
+        let url = $(this).find('a').attr('href');
+        url = `${SITE_URL}${url}`;
+        const poster = $(this).find('img').attr('src');
         const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
@@ -58,12 +58,11 @@ function collectSearchResults($) {
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
-    const params = { keyword: query, id: '-1', link_web: 'https://www16.gogoanime.io/' };
-    let searchResponse = await cloudscraper.get(SEARCH_URL, {
+    const params = { keyword: query };
+    const searchResponse = await cloudscraper.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
     });
-    searchResponse = JSON.parse(searchResponse).content;
     const $ = cheerio.load(searchResponse);
     let searchResults = collectSearchResults($);
     return searchResults;
