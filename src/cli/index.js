@@ -6,6 +6,10 @@ const fs = require('fs');
 const yargs = require('yargs');
 
 const {
+    downloadLoader,
+    DOWNLOADERS
+} = require('../external/');
+const {
     siteLoader,
     SITES
 } = require('../sites/');
@@ -54,6 +58,24 @@ const argv = yargs.
             default: '',
             describe: 'comma separated string of qualities to choose if quality asked for is not found e.g 360p, 480p',
             type: 'string'
+        },
+        'd': {
+            alias: 'directory',
+            default: '',
+            describe: 'the directory to download the file to',
+            type: 'string'
+        },
+        'sk': {
+            alias: 'skip',
+            default: false,
+            describe: 'skips downloading the file',
+            type: 'boolean'
+        },
+        'xd': {
+            alias: 'external-downloader',
+            default: 'aria2c',
+            describe: `the external downloader to use to download the file, choose ${DOWNLOADERS.join(', ')}`,
+            type: 'string'
         }
     })
     .help()
@@ -82,6 +104,11 @@ async function main() {
         animeurl = await pickSeachResult(searchResults);
     }
 
+    // set to skip downloading if user just wants to see urls or write to file
+    if (argv.write || argv.url) {
+        argv.skip = true;
+    }
+
     if (argv.write) {
         stream = fs.createWriteStream('anime.txt', { flags: 'a' });
     }
@@ -105,7 +132,7 @@ async function main() {
         }
 
         const { extract } = extractorLoader(quality.extractor);
-        const { url } = await extract(quality);
+        const { url, referer } = await extract(quality);
 
         if (argv.url && url !== '') {
             console.log(url);
@@ -113,6 +140,18 @@ async function main() {
 
         if (argv.write) {
             stream.write(`${url}\n`);
+        }
+
+        if (url && !argv.skip) {
+            const { download } = downloadLoader(argv.externalDownloader);
+            // Avoid stopping the whole download process because of an error
+            // will still console.error the error though
+            try {
+                await download(argv.directory, url, referer);
+                console.log(`Finished downloading ${url}`);
+            } catch (error) {
+                console.error(error);
+            }
         }
     }
 }
