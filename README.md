@@ -14,7 +14,7 @@ Fast and efficient anime downloader that gets the episodes you need very quickly
 ## Installation
 You must have nodejs and npm installed on your computer, preferably the more current versions. Type this into your commandline.
 ```
-npm install anigrab
+npm install -g anigrab
 ```
 And you should be ready to get started using anigrab
 
