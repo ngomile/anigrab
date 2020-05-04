@@ -38,7 +38,7 @@ const argv = yargs.
         'w': {
             alias: 'write',
             default: false,
-            describe: 'writes stream urls to file named anime.txt in current working directory',
+            describe: 'writes stream urls by appending them to a file named anime.txt in current working directory',
             type: 'boolean'
         },
         's': {
