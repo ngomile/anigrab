@@ -2,6 +2,7 @@
 
 const cloudscraper = require('cloudscraper');
 
+
 const {
     SearchResult,
     Anime,
@@ -14,6 +15,8 @@ const {
     range,
     executeTasks
 } = require('../utils');
+
+const config = require('../config').getConfig().siteconfig.animepahe;
 
 /** Part of the url for anime combined with slug to make full url */
 const ANIME_URL = 'https://animepahe.com/anime/';
@@ -33,6 +36,11 @@ const TITLE_REG = /<h1>([^<]+)/;
 const SUPPORTED_SERVERS = ['kwik', 'mp4upload'];
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animepahe.com/' });
+
+const versionToSub = new Map([
+    ['subbed', 'jpn'],
+    ['dubbed', 'eng']
+]);
 
 /**
  * Handles correctly extracting search result from animepahe
@@ -157,6 +165,7 @@ function getServers(page) {
  * @returns {Promise<Map<string, string>>}
  */
 async function getEpisodeQualities(server, episodeID, session) {
+    const version = versionToSub.get(config.version);
     let qualities = new Map();
     const params = { id: episodeID, m: 'embed', p: server, session: session };
     const apiResult = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
@@ -166,7 +175,9 @@ async function getEpisodeQualities(server, episodeID, session) {
 
     for (const info of providerInfo) {
         const [quality] = Object.keys(info);
-        qualities.set(`${quality}p`, info[quality].url);
+        if (version === info[quality].audio) {
+            qualities.set(`${quality}p`, info[quality].url);
+        }
     }
     return qualities;
 }
@@ -187,7 +198,9 @@ async function getQualities(url) {
     if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
-        if (!SUPPORTED_SERVERS.includes(server)) continue;
+        if (!SUPPORTED_SERVERS.includes(server)) {
+            continue;
+        }
         qualities = await getEpisodeQualities(server, episodeID, session);
         qualities = formatQualities(qualities, {
             extractor: server,
