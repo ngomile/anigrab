@@ -12,8 +12,10 @@ const {
 const {
     getHeaders,
     formatQualities,
-    extractVidstream
+    extractQualities
 } = require('../utils');
+
+const config = require('../config').getConfig().siteconfig.gogoanime;
 
 /** The url of the site */
 const SITE_URL = 'https://www16.gogoanime.io';
@@ -27,7 +29,9 @@ const ALIAS_REG = /category\/(.*)$/;
 /** Mapping of providers to associated regular expressions */
 const SOURCES_REG = new Map([
     ['vidstream', /href="(https:\/\/vidstreaming.io\/download.*)" target/],
-    ['mp4upload', /data-video="(.*)"> Mp4Upload/]
+    ['mp4upload', /data-video="(.*)"> Mp4Upload/],
+    ['gcloud', /data-video="(.*)">Xstreamcdn/],
+    ['yourupload', /data-video="(.*)">YourUpload/]
 ]);
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www16.gogoanime.io/' });
@@ -119,22 +123,21 @@ async function getAnime(url) {
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
-    let qualities = new Map(), extractor = 'universal';
+    const { server, fallbackServers } = config;
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
-    let source = page.match(SOURCES_REG.get('vidstream'));
+    const info = { page, server, url, sourcesReg: SOURCES_REG };
 
-    if (!source) {
-        extractor = 'mp4upload';
-        [, source] = page.match(SOURCES_REG.get('mp4upload'));
-        qualities.set('unknown', source);
-    } else {
-        [, source] = source;
-        qualities = await extractVidstream(source, url);
-    };
+    let { qualities, extractor } = await extractQualities(info);
+    for (const fallbackServer of fallbackServers) {
+        if (qualities.size) {
+            break;
+        }
+        ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
+    }
 
     qualities = formatQualities(qualities, {
         extractor,
-        referer: source
+        referer: url
     });
 
     return { qualities };
