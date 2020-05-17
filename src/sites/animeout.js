@@ -72,7 +72,9 @@ function collectEpisodes($) {
     let episodes = [];
     $('article.post a').each(function (ind, element) {
         const url = $(this).attr('href');
-        if (!DIRECT_DL_REG.test(url)) return;
+        if (!DIRECT_DL_REG.test(url)) {
+            return;
+        }
         // Title is taken from the direct download link
         const urlParts = url.split('/');
         const title = urlParts[urlParts.length - 1].replace('.mkv', '');
@@ -112,7 +114,7 @@ async function getQualities(url) {
     let realDLPage = $('a.btn').first().attr('href');
     realDLPage = await cloudscraper.get(realDLPage, { headers: DEFAULT_HEADERS });
 
-    // Try to find the quality on for the episode otherwise unknown quality
+    // Try to find the quality for the episode otherwise unknown quality
     let quality = QUALITY_REG.exec(realDLPage);
     if (quality) {
         [, quality] = quality;

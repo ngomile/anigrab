@@ -1,6 +1,6 @@
 'use strict';
 
-const DOWNLOADERS = exports.DOWNLOADERS = [
+const DOWNLOADERS = module.exports.DOWNLOADERS = [
     'aria2c'
 ];
 
@@ -10,7 +10,7 @@ const DOWNLOADERS = exports.DOWNLOADERS = [
  * 
  * @param {string} downloaderName
  */
-exports.downloadLoader = function (downloaderName) {
+module.exports.downloadLoader = function (downloaderName) {
     if (!DOWNLOADERS.includes(downloaderName)) {
         // Downloader not supported
         return null;

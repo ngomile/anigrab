@@ -20,7 +20,7 @@ const TITLE_REG = /title>(.*)</;
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-exports.extract = async function ({ url, referer = '' }) {
+module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
     const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
     const [, title] = page.match(TITLE_REG);

@@ -1,2 +1,4 @@
-exports.extractors = require('./extractors');
-exports.sites = require('./sites');
+module.exports = {
+    extractors: require('./extractors'),
+    sites: require('./sites')
+}

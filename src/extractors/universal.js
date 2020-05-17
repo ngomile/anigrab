@@ -11,7 +11,7 @@ const { ExtractedInfo } = require('./common');
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-exports.extract = async ({ url, referer = '' }) => {
+module.exports.extract = async ({ url, referer = '' }) => {
     referer = referer || url;
     return new ExtractedInfo(url, referer);
 };

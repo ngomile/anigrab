@@ -1,11 +1,11 @@
-const EXTRACTORS = exports.EXTRACTORS = [
+const EXTRACTORS = module.exports.EXTRACTORS = [
     'kwik',
     'mp4upload',
     'trollvid',
     'universal',
 ];
 
-exports.extractorLoader = function (extractorName) {
+module.exports.extractorLoader = function (extractorName) {
     if (!EXTRACTORS.includes(extractorName)) {
         return null
     };

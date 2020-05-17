@@ -1,3 +1,5 @@
+// Code taken and modified from https://github.com/vn-ki/anime-downloader/blob/master/anime_downloader/config.py
+
 'use strict';
 
 const path = require('path');

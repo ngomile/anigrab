@@ -10,7 +10,7 @@ const { executeCommand } = require('../../utils');
  * @param {string} url
  * @param {string} referer
  */
-exports.download = async (directory, url, referer) => {
+module.exports.download = async (directory, url, referer) => {
     const args = [`${url}`, `-d ${directory}`, '-c', '-x 2', '-V', `--referer=${referer}`];
     await executeCommand('aria2c', args);
 }
