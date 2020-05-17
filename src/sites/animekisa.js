@@ -11,9 +11,11 @@ const {
 
 const {
     getHeaders,
-    extractVidstream,
+    extractQualities,
     formatQualities
 } = require('../utils');
+
+const config = require('../config').getConfig().siteconfig.animekisa;
 
 /** The url to perform search queries on */
 const SEARCH_URL = 'https://animekisa.tv/search';
@@ -22,6 +24,7 @@ const SITE_URL = 'https://animekisa.tv';
 
 /** A mapping of sources to regular expressions to match sources to  */
 const SOURCES_REG = new Map([
+    ['gcloud', /var Fembed = "([^"]+)/],
     ['vidstream', /var VidStreaming = "([^"]+)/],
     ['mp4upload', /var MP4Upload = "([^"]+)/]
 ]);
@@ -40,8 +43,10 @@ function collectSearchResults($) {
         const title = $(this).find('.similardd').text();
         const url = `${SITE_URL}${$(this).attr('href')}`;
         const poster = `${SITE_URL}${$(this).find('img').attr('src')}`;
-        // Avoid putting garbage result into search results
-        if (url === SITE_URL + '/') return;
+        // Avoid putting garbage result in search results
+        if (url === SITE_URL + '/') {
+            return;
+        }
         const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
@@ -108,19 +113,16 @@ async function getAnime(url) {
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
-    let qualities = new Map(), extractor;
+    const { server, fallbackServers } = config;
     const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
-    // try to get from vidstream by default, this should be user configurable
-    let match = page.match(SOURCES_REG.get('vidstream'));
-    if (!match) {
-        let [, source] = page.match(SOURCES_REG.get('mp4upload'));
-        extractor = 'mp4upload';
-        // Can't tell what quality mp4upload will have so set to unknown
-        qualities.set('unknown', source);
-    } else {
-        let [, source] = match;
-        extractor = 'universal';
-        qualities = await extractVidstream(source, url);
+    const info = { page, server, sourcesReg: SOURCES_REG, url };
+
+    let { qualities, extractor } = await extractQualities(info);
+    for (const fallbackServer of fallbackServers) {
+        if (qualities.size) {
+            break;
+        }
+        ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
     }
 
     qualities = formatQualities(qualities, {
