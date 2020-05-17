@@ -69,6 +69,8 @@ You can specify some command line flags that affect the behavior of anigrab, the
 --sk, --skip                    skips downloading the file
 
 --xd, --external-downloader     the external downloader to use to download the file, aria2c by default and currently aria2c only supported
+
+--ft, --filter-title            regular expression to filter episodes based on their titles
 ```
 
 ### Usage as Library
