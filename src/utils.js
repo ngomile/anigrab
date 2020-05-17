@@ -14,9 +14,6 @@ const {
 } = require('./sites/common');
 const { USER_AGENTS } = require('./user_agents');
 
-/** Regular expression to find the download url for vidstream */
-const VIDSTREAM_DOWNLOAD_REG = /(https:\/\/vidstreaming.io\/download[^"]+)/;
-
 /**
  * Creates an object of headers
  * 
@@ -53,6 +50,26 @@ async function extractKsplayer(url, referer = '') {
 }
 
 /**
+ * Extracts the quality and the associated url from gcloud
+ *
+ * @param {string} url
+ * @param {string} referer
+ * @returns {Promise<Map<string, string>>}
+ */
+async function extractGcloud(url) {
+    let qualities = new Map();
+    const [, id] = url.match(/v\/(.*)/);
+    url = `https://gcloud.live/api/source/${id}`;
+    const resp = await cloudscraper.post(url, { headers: getHeaders({ Referer: url }) });
+    const jsonResp = JSON.parse(resp);
+
+    for (const { label: quality, file } of jsonResp.data) {
+        qualities.set(quality, file);
+    }
+    return qualities;
+}
+
+/**
  * Extracts the quality and the associated url from vidstream
  * 
  * @param {string} url 
@@ -65,10 +82,10 @@ async function extractVidstream(url, referer = '') {
     let qualities = new Map(), page;
 
     if (!url.includes('download')) {
-        // Find the download page
-        page = await cloudscraper.get(url, { headers: headers });
-        [, url] = page.match(VIDSTREAM_DOWNLOAD_REG);
+        const [, params] = url.match(/load.php\?(.*)/);
+        url = `https://vidstreaming.io/download?${params}`;
     }
+
     page = await cloudscraper.get(url, { headers: headers });
 
     const $ = cheerio.load(page);
@@ -128,11 +145,15 @@ function parseEpisodeGrammar(episodes, grammar = '') {
         if (SINGLE_EPISODE_REG.test(episodeGrammar)) {
             let [, num] = SINGLE_EPISODE_REG.exec(episodeGrammar);
             num = parseInt(num) - 1;
-            if (num < episodes.length) parsedEpisodes.push(episodes[num]);
+            if (num < episodes.length) {
+                parsedEpisodes.push(episodes[num]);
+            }
         } else if (RANGED_EPISODES_REG.test(episodeGrammar)) {
             let [, start, end] = RANGED_EPISODES_REG.exec(episodeGrammar);
             parsedEpisodes.push(...episodes.slice(start - 1, end));
-        } else if (grammar.trim() === '') parsedEpisodes = episodes;
+        } else if (grammar.trim() === '') {
+            parsedEpisodes = episodes;
+        }
     }
     return parsedEpisodes;
 }
@@ -286,6 +307,40 @@ async function executeCommand(cmd, args = []) {
     }
 }
 
+/**
+ * Finds the server that is hosting the episode by matching it to the
+ * regular expressions in sourcesReg and returns the qualities available
+ * if any
+ * 
+ * @param {object} obj
+ * @param {string} obj.page
+ * @param {string} obj.server
+ * @param {string} obj.url
+ * @param {Map<string, RegExp>} obj.sourcesReg
+ */
+async function extractQualities({ page, server, url, sourcesReg }) {
+    let qualities = new Map();
+    let extractor = '';
+    let source = ''
+    let match = page.match(sourcesReg.get(server));
+    if (match) {
+        if (server === 'vidstream') {
+            [, source] = match;
+            extractor = 'universal';
+            qualities = await extractVidstream(source, url);
+        } else if (server === 'gcloud') {
+            [, source] = match;
+            extractor = 'universal';
+            qualities = await extractGcloud(source);
+        } else {
+            [, source] = page.match(sourcesReg.get(server));
+            extractor = server;
+            qualities.set('unknown', source);
+        }
+    }
+    return { qualities, extractor };
+}
+
 module.exports = {
     extractKsplayer,
     extractVidstream,
@@ -297,5 +352,7 @@ module.exports = {
     executeTasks,
     pickSeachResult,
     getOtherQuality,
-    executeCommand
+    executeCommand,
+    extractQualities,
+    extractGcloud
 }
