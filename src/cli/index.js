@@ -121,7 +121,7 @@ async function main() {
     const args = episodes.map(({ url }) => [url]);
     const qualitiesList = await executeTasks(site.getQualities, ...args);
 
-    for (const { qualities } of qualitiesList) {
+    for (const [ind, { qualities }] of qualitiesList.entries()) {
         let quality = qualities.get(argv.quality);
         if (!quality) {
             console.log(`Quality ${argv.quality} not found. Trying other qualities`);
@@ -149,7 +149,16 @@ async function main() {
             // Avoid stopping the whole download process because of an error
             // will still console.error the error though
             try {
-                await download(argv.directory, url, referer);
+                let ext = url.match(/(mkv|mp4)/);
+
+                if (ext && ext.length) {
+                    [, ext] = ext;
+                } else {
+                    ext = 'mp4';
+                }
+
+                const fileName = `${episodes[ind].title}.${ext}`;
+                await download(argv.directory, fileName, url, referer);
                 console.log(`Finished downloading ${url}`);
             } catch (error) {
                 console.error(error);
