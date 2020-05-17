@@ -21,11 +21,13 @@ const {
     getOtherQuality
 } = require('../utils');
 
+const { dl: dlConfig } = require('../config').getConfig();
+
 const argv = yargs.
     options({
         'q': {
             alias: 'quality',
-            default: '1080p',
+            default: dlConfig.quality,
             describe: 'quality of the video, can be 720p or 1080p or any other resolution',
             type: 'string'
         },
@@ -43,7 +45,7 @@ const argv = yargs.
         },
         's': {
             alias: 'site',
-            default: 'animepahe',
+            default: dlConfig.site,
             describe: `the site to get the anime from, choose ${SITES.join(', ')}`,
             type: 'string'
         },
@@ -61,7 +63,7 @@ const argv = yargs.
         },
         'd': {
             alias: 'directory',
-            default: '',
+            default: dlConfig.directory,
             describe: 'the directory to download the file to',
             type: 'string'
         },
@@ -82,7 +84,7 @@ const argv = yargs.
     .argv
 
 async function main() {
-    let animeurl = argv._[0], stream;
+    let animeurl = argv._[0], writeStream;
     if (!animeurl) {
         console.log('Provide anime url or name');
         return;
@@ -110,7 +112,7 @@ async function main() {
     }
 
     if (argv.write) {
-        stream = fs.createWriteStream('anime.txt', { flags: 'a' });
+        writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
     }
 
     console.log(`Extracting ${animeurl}`);
@@ -139,7 +141,7 @@ async function main() {
         }
 
         if (argv.write) {
-            stream.write(`${url}\n`);
+            writeStream.write(`${url}\n`);
         }
 
         if (url && !argv.skip) {
