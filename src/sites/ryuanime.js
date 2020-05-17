@@ -14,6 +14,8 @@ const {
     formatQualities
 } = require('../utils');
 
+const config = require('../config').getConfig().siteconfig.ryuanime;
+
 /** The url to make search queries to */
 const SEARCH_URL = 'https://www4.ryuanime.com/search';
 
@@ -60,15 +62,23 @@ async function search(query) {
  * @returns {Episode[]}
  */
 function collectEpisodes($) {
+    const versionsMap = new Map([
+        ['subbed', 'Sub'],
+        ['dubbed', 'Dub']
+    ]);
+    const version = versionsMap.get(config.version);
     let episodes = [];
     $('.card-body .row a').each(function (ind, element) {
         let title = $(this).text();
         // Only getting subbed, should be user configurable
-        if (!title.includes('Sub')) return;
+        if (!title.includes(version)) {
+            return;
+        }
         let url = $(this).attr('href');
         const episode = new Episode(title, url);
         episodes.push(episode);
     });
+
     return episodes.reverse();
 }
 
@@ -95,28 +105,40 @@ async function getAnime(url) {
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
-    let qualities = new Map();
+    function handleSources(sources, version, server) {
+        let qualities = new Map();
+        let extractor = '';
+        for (const { id, host, type } of sources) {
+            if (host === server && type === version) {
+                extractor = host;
+                if (host === 'trollvid') {
+                    qualities.set('unknown', `https://trollvid.net/embed/${id}`);
+                } else if (host === 'mp4upload') {
+                    qualities.set('unknown', `https://www.mp4upload.com/embed-${id}.html`);
+                }
+            }
+        }
+        return { qualities, extractor };
+    }
+    const { version, server, fallbackServers } = config;
     const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
     let [, sources] = SOURCES_REG.exec(episodePage);
     sources = JSON.parse(sources);
-    for (const source of sources) {
-        if (source.host === 'trollvid') {
-            qualities.set('unknown', `https://trollvid.net/embed/${source.id}`);
-        } else if (source.host === 'mp4upload') {
-            qualities.set('unknown', `https://www.mp4upload.com/embed-${source.id}.html`)
-        } else {
-            continue;
+    let { extractor, qualities } = handleSources(sources, version, server);
+
+    for (const fallbackServer of fallbackServers) {
+        if (qualities.size) {
+            break;
         }
 
-        qualities = formatQualities(qualities, {
-            referer: url,
-            extractor: source.host
-        });
-
-        return { qualities };
+        ({ extractor, qualities } = handleSources(sources, version, fallbackServer));
     }
-    // In the exceptional case that no sources are found error is thrown
-    throw new Error('Episode sources not found');
+
+    qualities = formatQualities(qualities, {
+        extractor,
+        referer: url
+    });
+    return { qualities };
 }
 
 module.exports = {
