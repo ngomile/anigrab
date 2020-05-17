@@ -78,16 +78,26 @@ const argv = yargs.
             default: 'aria2c',
             describe: `the external downloader to use to download the file, choose ${DOWNLOADERS.join(', ')}`,
             type: 'string'
+        },
+        'ft': {
+            alias: 'filter-title',
+            default: '',
+            describe: 'regular expression to filter episodes based on their titles',
+            type: 'string'
         }
     })
     .help()
     .argv
 
 async function main() {
-    let animeurl = argv._[0], writeStream;
+    let animeurl = argv._[0], writeStream, filterTitle;
     if (!animeurl) {
         console.log('Provide anime url or name');
         return;
+    }
+
+    if (argv.filterTitle) {
+        filterTitle = new RegExp(argv.filterTitle);
     }
 
     const site = siteLoader(animeurl) || siteLoader(argv.site);
@@ -117,7 +127,15 @@ async function main() {
 
     console.log(`Extracting ${animeurl}`);
     const anime = await site.getAnime(animeurl);
-    const episodes = parseEpisodeGrammar(anime.episodes, argv.episodes);
+    // Sites like animeout list all episodes and there qualities on the same page
+    // if title filter is specified, filter the episodes first then proceed to
+    // parse episode grammar to avoid breaking the episodes returned
+    const episodes = parseEpisodeGrammar(anime.episodes.filter(episode => {
+        if (filterTitle && !filterTitle.test(episode.title)) {
+            return false;
+        }
+        return true;
+    }), argv.episodes);
     const args = episodes.map(({ url }) => [url]);
     const qualitiesList = await executeTasks(site.getQualities, ...args);
 
