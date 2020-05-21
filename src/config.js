@@ -4,9 +4,10 @@
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 let Config;
-const CONFIG_DIR = path.join(process.env.APPDATA, 'anigrab');
+const CONFIG_DIR = os.platform() === 'win32' ? path.join(process.env.APPDATA, 'anigrab') : path.join(process.env.HOME, '.config', 'anigrab');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_CONFIG = {
