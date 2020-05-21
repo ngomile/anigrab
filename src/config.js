@@ -15,6 +15,7 @@ const DEFAULT_CONFIG = {
         directory: '.',
         quality: '1080p',
         site: 'animepahe',
+        aria2c: ['-c true', '-x 2', '-V']
     },
     siteconfig: {
         animekisa: {
