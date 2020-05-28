@@ -16,7 +16,7 @@ const {
 const { extractorLoader } = require('../extractors/');
 const {
     parseEpisodeGrammar,
-    pickSeachResult,
+    pickSearchResult,
     executeTasks,
     getOtherQuality
 } = require('../utils');
@@ -90,7 +90,9 @@ const argv = yargs.
     .argv
 
 async function main() {
-    let animeurl = argv._[0], writeStream, filterTitle;
+    let animeurl = argv._[0];
+    let writeStream;
+    let filterTitle;
     if (!animeurl) {
         console.log('Provide anime url or name');
         return;
@@ -113,7 +115,7 @@ async function main() {
             return;
         }
 
-        animeurl = await pickSeachResult(searchResults);
+        animeurl = await pickSearchResult(searchResults);
     }
 
     // set to skip downloading if user just wants to see urls or write to file

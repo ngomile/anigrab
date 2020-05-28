@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 const cheerio = require('cheerio');
 
 const {
@@ -56,10 +56,10 @@ function collectSearchResults($) {
  */
 async function search(query) {
     const params = { s: query, post_type: 'wp-manga' };
-    const searchResponse = await cloudscraper.get(SEARCH_URL, {
+    const searchResponse = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
-    });
+    }, false);
     const $ = cheerio.load(searchResponse);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -89,7 +89,7 @@ function collectEpisodes($, title) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
     const $ = cheerio.load(page);
     const title = $('h1').text().trim();
     const episodes = collectEpisodes($, title);
@@ -106,18 +106,18 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
     const [, playerSrc] = page.match(PLAYER_SRC_REG);
 
-    const playerPage = await cloudscraper.get(playerSrc, { headers: DEFAULT_HEADERS });
+    const playerPage = await request.get(playerSrc, { headers: DEFAULT_HEADERS });
     let [, videoData] = playerPage.match(VIDEO_DATA_REG);
     const [, action, a, b] = videoData.match(FORM_VALS_REG);
     const formData = { action, a, b };
 
-    let sourceData = await cloudscraper.post(API_URL, {
+    let sourceData = await request.post(API_URL, {
         headers: getHeaders({ Referer: playerSrc }),
         formData: formData
-    });
+    }, false);
 
     const sources = JSON.parse(sourceData.match(SOURCES_REG)[1]).sources;
     for (const source of sources) {

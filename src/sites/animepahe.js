@@ -1,7 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
-
+const request = require('../request');
 
 const {
     SearchResult,
@@ -28,7 +27,7 @@ const ANIME_ID_REG = /&id=(\d+)/;
 /** Regular expression to match the server the episode is on */
 const SERVER_REG = /data-provider="([^"]+)/g;
 /** Regular expression to extract the id and session for the episode */
-const ID_SESSION_REG = /getEmbeds\((\d+), "([^"]+)/;
+const ID_SESSION_REG = /getUrls\((\d+), "([^"]+)/;
 /** Regular expresion to find the title of the anime */
 const TITLE_REG = /<h1>([^<]+)/;
 
@@ -64,7 +63,7 @@ function handleSearchResult({ title, slug, poster }) {
  */
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
-    const response = await cloudscraper.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS });
+    const response = await request.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS });
     const results = JSON.parse(response);
     // Search results are stored in the data field
     return results.data ? results.data.map(handleSearchResult) : [];
@@ -79,7 +78,7 @@ async function search(query) {
  */
 async function getPageData(animeID, page = 1) {
     const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
-    const response = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const response = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
     const data = JSON.parse(response);
     return data;
 }
@@ -113,7 +112,7 @@ function getEpisodes(title, url, animeData) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const [, title] = TITLE_REG.exec(page);
     const [, animeID] = ANIME_ID_REG.exec(page);
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
@@ -168,7 +167,7 @@ async function getEpisodeQualities(server, episodeID, session) {
     const version = versionToSub.get(config.version);
     let qualities = new Map();
     const params = { id: episodeID, m: 'embed', p: server, session: session };
-    const apiResult = await cloudscraper.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const apiResult = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
 
     if (apiResult === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
     const providerInfo = Object.values(JSON.parse(apiResult).data);
@@ -191,7 +190,7 @@ async function getEpisodeQualities(server, episodeID, session) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const episodePage = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const episodePage = await request.get(url, { headers: DEFAULT_HEADERS });
     const servers = getServers(episodePage);
     const [, episodeID, session] = ID_SESSION_REG.exec(episodePage);
 

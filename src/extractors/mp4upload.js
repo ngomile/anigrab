@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 
 const { ExtractedInfo } = require('./common');
 const {
@@ -18,7 +18,7 @@ const {
 module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
     let streamURL;
-    const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) }, false);
     const deletedText = 'File was deleted';
     const licensedText = 'This video is no longer available due to a copyright claim.';
 

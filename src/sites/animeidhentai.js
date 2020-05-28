@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 const cheerio = require('cheerio');
 
 const {
@@ -61,7 +61,7 @@ async function search(query) {
     // query has to be separated by + and lowercase
     query = query.replace(' ', '+').toLowerCase();
     const search = `${SEARCH_URL}${query}`;
-    const response = await cloudscraper.get(search, { headers: DEFAULT_HEADERS });
+    const response = await request.get(search, { headers: DEFAULT_HEADERS }, false);
     const $ = cheerio.load(response);
     const searchResults = collectSearchResults($);
     return searchResults;
@@ -95,11 +95,11 @@ async function getAnime(url) {
     if (!url.startsWith('https://animeidhentai.com/hentai/')) {
         // In the scenario that we are not on the actual episodes page
         // find actual episodes page url
-        page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+        page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
         $ = cheerio.load(page);
         url = $('.entry-footer').find('a').last().attr('href');
     }
-    page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
     $ = cheerio.load(page);
     const title = $('.entry-title').first().text().replace(/ Episode \d{1,3}\s?/, ' ').replace('-', '').trim();
     const episodes = collectEpisodes($);
@@ -135,7 +135,7 @@ function collectSubTypes($, idToStream) {
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
     const [, id] = page.match(DATA_ID_REG);
     // animeidhentai has more than one subtitle type but sub-2 usually is the one
     // that will be prioritized
@@ -147,10 +147,10 @@ async function getQualities(url) {
     // so choose sub just as a fallback
     const subType = subTypes.get('sub-2') || subTypes.get('sub');
     const formData = { id, action: 'ajax_player', opt: subType };
-    const streamPage = await cloudscraper.post(API_URL, {
+    const streamPage = await request.post(API_URL, {
         headers: getHeaders({ Referer: url }),
         formData: formData
-    });
+    }, false);
 
     let [, streamURL] = streamPage.match(SRC_REG);
     streamURL = streamURL.replace('embed', 'download');

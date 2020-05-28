@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 
 const { ExtractedInfo } = require('./common');
 const { getHeaders } = require('../utils');
@@ -18,7 +18,7 @@ const SOURCE_REG = /source src="([^"]+)/;
  */
 module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
-    const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) }, false);
     const [, streamURL] = page.match(/file:\s*'([^']+)/);
     return new ExtractedInfo(streamURL, url);
 }

@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 const cheerio = require('cheerio');
 
 const {
@@ -63,7 +63,7 @@ function collectSearchResults($) {
  */
 async function search(query) {
     const params = { keyword: query };
-    const searchResponse = await cloudscraper.get(SEARCH_URL, {
+    const searchResponse = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
     });
@@ -98,13 +98,13 @@ function collectEpisodes($, animeName) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     let $ = cheerio.load(page);
     const title = $('h1').text();
     const movieID = $('#movie_id').first().attr('value');
     const [, alias] = url.match(ALIAS_REG);
     const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias };
-    const response = await cloudscraper.get(API_URL, {
+    const response = await request.get(API_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
     });
@@ -124,7 +124,7 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     const { server, fallbackServers } = config;
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const info = { page, server, url, sourcesReg: SOURCES_REG };
 
     let { qualities, extractor } = await extractQualities(info);

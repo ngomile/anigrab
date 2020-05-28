@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 const cheerio = require('cheerio');
 
 const {
@@ -53,10 +53,10 @@ function collectSearchResults($) {
  */
 async function search(query) {
     const params = { s: query, post_type: 'post' };
-    const searchText = await cloudscraper.get(SEARCH_URL, {
+    const searchText = await request.get(SEARCH_URL, {
         qs: params,
         headers: DEFAULT_HEADERS
-    });
+    }, false);
     const $ = cheerio.load(searchText);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -91,7 +91,7 @@ function collectEpisodes($) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
     const $ = cheerio.load(page);
     const title = $('.page-title').text();
     const episodes = collectEpisodes($);
@@ -108,11 +108,11 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
 
     let $ = cheerio.load(page);
     let realDLPage = $('a.btn').first().attr('href');
-    realDLPage = await cloudscraper.get(realDLPage, { headers: DEFAULT_HEADERS });
+    realDLPage = await request.get(realDLPage, { headers: DEFAULT_HEADERS }, false);
 
     // Try to find the quality for the episode otherwise unknown quality
     let quality = QUALITY_REG.exec(realDLPage);

@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Represents a search result, used when scraping
  * search results from site

@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 const cheerio = require('cheerio');
 
 const {
@@ -61,7 +61,7 @@ function collectSearchResults($) {
  */
 async function search(query) {
     const params = { q: query };
-    const searchPage = await cloudscraper.get(SEARCH_URL, {
+    const searchPage = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
     });
@@ -97,7 +97,7 @@ function collectEpisodes($, title) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
     const title = $('h1.infodes').text();
     const episodes = collectEpisodes($, title);
@@ -114,7 +114,7 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     const { server, fallbackServers } = config;
-    const page = await cloudscraper.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const info = { page, server, sourcesReg: SOURCES_REG, url };
 
     let { qualities, extractor } = await extractQualities(info);

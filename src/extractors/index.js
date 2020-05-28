@@ -1,3 +1,5 @@
+'use strict';
+
 const EXTRACTORS = module.exports.EXTRACTORS = [
     'kwik',
     'mp4upload',

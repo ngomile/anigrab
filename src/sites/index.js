@@ -1,3 +1,5 @@
+'use strict';
+
 const SITES = module.exports.SITES = [
     'animeidhentai',
     'animekisa',

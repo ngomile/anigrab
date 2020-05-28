@@ -1,6 +1,6 @@
 'use strict';
 
-const cloudscraper = require('cloudscraper');
+const request = require('../request');
 
 const { ExtractedInfo } = require('./common');
 const { getHeaders } = require('../utils');
@@ -22,7 +22,7 @@ const TITLE_REG = /title>(.*)</;
  */
 module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
-    const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
     const [, title] = page.match(TITLE_REG);
     const [, obsfucatedJS] = page.match(EVAL_REG);
     const deobsfucatedJS = eval(`const extract = () => (${obsfucatedJS}); extract()`);

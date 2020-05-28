@@ -4,7 +4,7 @@ const { spawn } = require('child_process');
 const readline = require('readline');
 const { promisify } = require('util');
 
-const cloudscraper = require('cloudscraper');
+const request = require('./request');
 const cheerio = require('cheerio');
 
 // Is there a better way to get class information without having to require?
@@ -37,7 +37,7 @@ function getHeaders(headers = {}) {
 async function extractKsplayer(url, referer = '') {
     referer = referer || url;
     let qualities = new Map();
-    const page = await cloudscraper.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) }, false);
 
     const $ = cheerio.load(page);
     $('.download_links a').each(function (ind, element) {
@@ -60,7 +60,7 @@ async function extractGcloud(url) {
     let qualities = new Map();
     const [, id] = url.match(/v\/(.*)/);
     url = `https://gcloud.live/api/source/${id}`;
-    const resp = await cloudscraper.post(url, { headers: getHeaders({ Referer: url }) });
+    const resp = await request.post(url, { headers: getHeaders({ Referer: url }) }, false);
     const jsonResp = JSON.parse(resp);
 
     for (const { label: quality, file } of jsonResp.data) {
@@ -77,16 +77,15 @@ async function extractGcloud(url) {
  * @returns {Promise<Map<string, string>>}
  */
 async function extractVidstream(url, referer = '') {
-    referer = referer || url;
-    const headers = getHeaders({ 'Referer': referer });
-    let qualities = new Map(), page;
-
     if (!url.includes('download')) {
         const [, params] = url.match(/load.php\?(.*)/);
         url = `https://vidstreaming.io/download?${params}`;
     }
 
-    page = await cloudscraper.get(url, { headers: headers });
+    referer = referer || url;
+    const headers = getHeaders({ 'Referer': referer });
+    let qualities = new Map();
+    page = await request.get(url, { headers: headers });
 
     const $ = cheerio.load(page);
     $('.mirror_link').first().find('a').each(function (ind, element) {
@@ -228,7 +227,7 @@ async function executeTasks(func, ...args) {
  * @param {SearchResult[]} searchResults
  * @returns {string}
  */
-async function pickSeachResult(searchResults) {
+async function pickSearchResult(searchResults) {
     for (let i = 0; i < searchResults.length; i++) {
         console.log(`${i + 1}. ${searchResults[i].title}`);
     }
@@ -350,7 +349,7 @@ module.exports = {
     input,
     range,
     executeTasks,
-    pickSeachResult,
+    pickSearchResult,
     getOtherQuality,
     executeCommand,
     extractQualities,
