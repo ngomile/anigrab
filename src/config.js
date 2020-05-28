@@ -33,6 +33,11 @@ const DEFAULT_CONFIG = {
             version: 'subbed',
             server: 'trollvid',
             fallbackServers: ['mp4upload'],
+        },
+        animeflix: {
+            server: 'AUEngine',
+            fallbackServers: ['FastStream'],
+            version: 'sub'
         }
     }
 }
