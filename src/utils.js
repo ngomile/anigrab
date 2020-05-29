@@ -61,10 +61,14 @@ async function extractGcloud(url) {
     const [, id] = url.match(/v\/(.*)/);
     url = `https://gcloud.live/api/source/${id}`;
     const resp = await request.post(url, { headers: getHeaders({ Referer: url }) }, false);
-    const jsonResp = JSON.parse(resp);
+    const jsonResp = JSON.parse(resp).data;
 
-    for (const { label: quality, file } of jsonResp.data) {
-        qualities.set(quality, file);
+    // gcloud may respond with a string error message but when successful
+    // responds with array
+    if (Array.isArray(jsonResp)) {
+        for (const { label: quality, file } of jsonResp) {
+            qualities.set(quality, file);
+        }
     }
     return qualities;
 }
