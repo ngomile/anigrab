@@ -14,7 +14,7 @@ const DEFAULT_CONFIG = {
     dl: {
         directory: '.',
         quality: '1080p',
-        site: 'animepahe',
+        site: 'gogoanime',
         aria2c: ['-c true', '-x 2', '-V']
     },
     siteconfig: {
