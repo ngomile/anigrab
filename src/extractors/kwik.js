@@ -1,16 +1,14 @@
 'use strict';
 
-const request = require('../request');
+const puppeteer = require('puppeteer-core');
 
 const { ExtractedInfo } = require('./common');
-const { getHeaders } = require('../utils');
+const config = require('../config').getConfig();
 
-/** Regular expression to match javascript that needs to be evaulated */
-const EVAL_REG = /;eval\((.*)\)/
-/** Regular expression that extracts the necessary information to make stream url */
-const STREAM_PARTS_REG = /https:\/\/(.*?)\..*\/(\d+)\/(.*)\/.*token=(.*)&expires=([^\']+)/;
-/** Regular expression to get title of file for use in the stream url */
-const TITLE_REG = /title>(.*)</;
+/** Path to browser executable to be used by puppeteer */
+const { browserExecutablePath } = config;
+/** Regular expression to block out unneeded requests to improve performance */
+const BLOCKED_RESOURCES_REG = /ads|inpagepush|css|vipicmou|cloud|png|ueuodgnrhb|shqbsdjatunl|hcaptcha|plyr|hls/;
 
 /**
  * Extracts stream url and referer from kwik
@@ -20,13 +18,43 @@ const TITLE_REG = /title>(.*)</;
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-module.exports.extract = async function ({ url, referer = '' }) {
-    referer = referer || url;
-    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
-    const [, title] = page.match(TITLE_REG);
-    const [, obsfucatedJS] = page.match(EVAL_REG);
-    const deobsfucatedJS = eval(`const extract = () => (${obsfucatedJS}); extract()`);
-    const [, cdn, digits, file, token, expires] = deobsfucatedJS.match(STREAM_PARTS_REG);
-    const streamURL = `https://${cdn}.nextstream.org/get/${token}/${expires}/mp4/${digits}/${file}/${title}`
-    return new ExtractedInfo(streamURL, url);
+module.exports.extract = async function ({ url }) {
+    let browser;
+    let streamUrl = '';
+    try {
+        // Replace url to target download page instead of embed page
+        url = url.replace(/\be\b/, 'f');
+        browser = await puppeteer.launch({
+            executablePath: browserExecutablePath
+        });
+        const page = await browser.newPage();
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (BLOCKED_RESOURCES_REG.test(request.url())) {
+                request.abort();
+            } else if (request.url().startsWith('https://files-eu2')) {
+                streamUrl = request.url();
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+        await page.goto(url, {
+            waitUntil: 'networkidle2'
+        });
+        await Promise.all([
+            page.waitForNavigation({
+                waitUntil: 'networkidle2'
+            }),
+            page.click('button')
+        ]);
+    } catch (error) {
+        console.error(error);
+        process.exit(1);
+    } finally {
+        if (browser !== undefined) {
+            await browser.close();
+        }
+    }
+    return new ExtractedInfo(streamUrl, url);
 }
