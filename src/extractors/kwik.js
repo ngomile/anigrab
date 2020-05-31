@@ -32,7 +32,7 @@ module.exports.extract = async function ({ url }) {
         page.on('request', (request) => {
             if (BLOCKED_RESOURCES_REG.test(request.url())) {
                 request.abort();
-            } else if (request.url().startsWith('https://files-eu2')) {
+            } else if (request.url().startsWith('https://files-eu')) {
                 streamUrl = request.url();
                 request.abort();
             } else {
