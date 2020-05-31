@@ -1,18 +1,27 @@
 # anigrab
 
-Fast and efficient anime downloader that gets the episodes you need very quickly, saving you your precious time and energy. Taking inspiration from [anime-downloader](https://github.com/vn-ki/anime-downloader)
+Fast and efficient anime downloader that gets the episodes you need quickly, saving you your precious time and energy.
+
+## Features:
+* Download anime from various sources such as AnimeOut, GogoAnime, AnimeFlix and more
+* Save the download links of anime episodes to a file
+* Specify the episodes you want to download
+* Configure downloading options and site options
+* intuitively handles any quality from 1080p to even the most elusive ones
 
 ## Supported Sites
+* animeflix
+* animefreak
 * animeidhentai
 * animekisa
 * animeout
-* animepahe
+* animepahe (Currently Not Working)
 * gogoanime
 * hentaihaven
 * ryuanime
 
 ## Installation
-You must have nodejs and npm installed on your computer, preferably the more current versions. Type this into your commandline.
+You must have [nodejs and npm](https://nodejs.org/en/) and [aria2c](https://aria2.github.io/) installed on your computer, preferably the more recent versions. Type this into your commandline.
 ```
 npm install -g anigrab
 ```
@@ -21,7 +30,7 @@ And you should be ready to get started using anigrab
 ## Usage
 
 ### Downloading
-Downloading an anime is as simple as typing in the name of an anime which initiates a search for the anime. Ensure you have aria2c installed which is what is used for downloading otherwise downloading will not work. For example:
+Downloading an anime is as simple as typing in the name of an anime which initiates a search for the anime. Ensure you have [aria2c](https://aria2.github.io/) installed which is what is used for downloading otherwise downloading will not work. For example:
 
 ```
 anigrab beastars -e 10
@@ -91,3 +100,10 @@ async function main() {
 
 main()
 ```
+
+## Similar Projects
+* [anime-downloader](https://github.com/vn-ki/anime-downloader)
+* [monkey-dl](https://github.com/Oshan96/monkey-dl)
+
+## Disclaimer
+The developer of this application does not have any affiliation with any of the content providers available. If you like the content providers support them in anyway you can.
