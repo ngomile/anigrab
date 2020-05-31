@@ -12,13 +12,14 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 ## Supported Sites
 * animeflix
 * animefreak
-* animeidhentai
 * animekisa
+* animeidhentai
 * animeout
 * animepahe (Requires Chrome or Chromium based browser)
 * gogoanime
 * hentaihaven
 * ryuanime
+* twist
 
 ## Installation
 You must have [nodejs and npm](https://nodejs.org/en/) and [aria2c](https://aria2.github.io/) installed on your computer, preferably the more recent versions. Type this into your commandline.

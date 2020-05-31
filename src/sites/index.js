@@ -10,6 +10,7 @@ const SITES = module.exports.SITES = [
     'gogoanime',
     'hentaihaven',
     'ryuanime',
+    'twist',
 ];
 
 const SITE_NAME_REG = /https?:\/\/(?:www\d{0,2}\.)?(.*)\./;
