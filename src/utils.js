@@ -214,12 +214,13 @@ function range(start, end) {
  */
 async function executeTasks(func, ...args) {
     let results = [];
+    const maxTasks = 5;
     while (args.length) {
-        const tasks = args.slice(0, 5).map(arg => func(...arg));
+        const tasks = args.slice(0, maxTasks).map(arg => func(...arg));
         for await (const result of tasks) {
             results.push(result);
         }
-        args = args.splice(4);
+        args = args.splice(maxTasks);
     }
     return results;
 }
