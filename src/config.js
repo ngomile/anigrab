@@ -11,6 +11,7 @@ const CONFIG_DIR = os.platform() === 'win32' ? path.join(process.env.APPDATA, 'a
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_CONFIG = {
+    browserExecutablePath: 'chrome.exe',
     dl: {
         directory: '.',
         quality: '1080p',
