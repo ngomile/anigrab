@@ -4,6 +4,7 @@ const rp = require('request-promise');
 const cloudscraper = require('cloudscraper');
 
 async function request(url, options, cf = true) {
+    options.timeout = 15000;
     const requestHandler = cf ? cloudscraper : rp;
     let retries = 0;
     const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
