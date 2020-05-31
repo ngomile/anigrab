@@ -215,7 +215,7 @@ function range(start, end) {
 async function executeTasks(func, ...args) {
     let results = [];
     while (args.length) {
-        const tasks = args.slice(0, 4).map(arg => func(...arg));
+        const tasks = args.slice(0, 5).map(arg => func(...arg));
         for await (const result of tasks) {
             results.push(result);
         }
