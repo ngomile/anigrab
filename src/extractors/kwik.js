@@ -52,7 +52,7 @@ module.exports.extract = async function ({ url }) {
         console.error(error);
         process.exit(1);
     } finally {
-        if (browser !== undefined) {
+        if (browser) {
             await browser.close();
         }
     }
