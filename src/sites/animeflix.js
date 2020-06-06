@@ -64,17 +64,24 @@ async function getAnime(url) {
     const [, slug] = url.match(/shows\/(.*)/);
     const headers = getHeaders({ Referer: url });
     let meta = await request.get(META_URL, { qs: { slug }, headers });
-    let episodeList = await request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers });
+    let episodeData = await request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers });
 
     meta = JSON.parse(meta).data;
-    episodeList = JSON.parse(episodeList).episodes;
+    episodeData = JSON.parse(episodeData);
     const { title } = meta;
 
-    for (const { episodeNumber, url } of episodeList) {
+    if (episodeData['@type'] === 'Movie') {
         episodes.push(new Episode(
-            `${title} Episode ${episodeNumber}`,
-            `${SITE_URL}${url}`.replace(/\-(dub|sub)$/, '/$1')
+            `${title}`,
+            `${episodeData.potentialAction.target}`
         ));
+    } else {
+        for (const { episodeNumber, url } of episodeData.episodes) {
+            episodes.push(new Episode(
+                `${title} Episode ${episodeNumber}`,
+                `${SITE_URL}${url}`.replace(/\-(dub|sub)$/, '/$1')
+            ));
+        }
     }
 
     return new Anime(title, episodes);
