@@ -15,7 +15,7 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 * animekisa
 * animeidhentai
 * animeout
-* animepahe (Requires Chrome or Chromium based browser)
+* animepahe
 * gogoanime
 * hentaihaven
 * ryuanime
