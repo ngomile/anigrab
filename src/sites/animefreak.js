@@ -29,9 +29,8 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www.animefreak.tv/' });
 async function search(query) {
     let searchResults = [];
     const params = { q: query };
-    let searchResponse = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS }, false);
-    searchResponse = JSON.parse(searchResponse);
-    for (const { name, seo_name } of searchResponse.data) {
+    const { data } = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
+    for (const { name, seo_name } of data) {
         searchResults.push(new SearchResult(
             name,
             `${ANIME_URL}/${seo_name}`
@@ -49,7 +48,7 @@ async function search(query) {
  */
 async function getAnime(url) {
     let episodes = [];
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const [, title] = page.match(/Watch (.*?) Anime/);
     const $ = cheerio.load(page);
     $('ul.check-list').last().find('a').each(function (ind, elem) {
@@ -70,7 +69,7 @@ async function getAnime(url) {
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     let qualities = new Map();
     const [, source] = page.match(/loadVideo[\s\S]+file: "([^"]+)/);
     let quality = source.match(/(\d{3,4}p)/);

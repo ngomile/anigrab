@@ -47,10 +47,9 @@ const decrypt = source => aes.decrypt(source, KEY).toString(crypto.enc.Utf8).tri
  */
 async function search(query) {
     let searchResults = [];
-    let searchResponse = await request.get(API_URL, {
+    const searchResponse = await request.get(API_URL, {
         headers: DEFAULT_HEADERS,
-    }, false);
-    searchResponse = JSON.parse(searchResponse);
+    });
     const options = {
         scorer: fuzz.partial_ratio,
         processor: choice => choice.title,
@@ -80,12 +79,16 @@ async function getAnime(url) {
     const [, slug] = url.match(SLUG_REG);
     url = `${API_URL}${slug}/sources`;
     const headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
-    let episodesResponse = await request.get(url, { headers }, false);
-    episodesResponse = JSON.parse(episodesResponse);
+    const episodesResponse = await request.get(url, { headers });
 
     for (const { number, source } of episodesResponse) {
         const decryptedSourceUrl = `${SITE_URL}${decrypt(source)}`;
-        [, title] = decryptedSourceUrl.match(TITLE_REG);
+        let title = decryptedSourceUrl.match(TITLE_REG);
+        if (title) {
+            [, title] = title;
+        } else {
+            title = decryptedSourceUrl.split(/\b\/\b/)[3].split('.')[0];
+        }
         episodes.push(new Episode(
             `${title} Episode ${number}`,
             decryptedSourceUrl

@@ -64,7 +64,7 @@ async function search(query) {
     const searchPage = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
-    });
+    }, true);
     const $ = cheerio.load(searchPage);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -97,7 +97,7 @@ function collectEpisodes($, title) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
     const $ = cheerio.load(page);
     const title = $('h1.infodes').text();
     const episodes = collectEpisodes($, title);
@@ -114,7 +114,7 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     const { server, fallbackServers } = config;
-    const page = await request.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
     const info = { page, server, sourcesReg: SOURCES_REG, url };
 
     let { qualities, extractor } = await extractQualities(info);

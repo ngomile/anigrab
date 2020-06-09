@@ -59,7 +59,7 @@ async function search(query) {
     const searchResponse = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
         qs: params
-    }, false);
+    });
     const $ = cheerio.load(searchResponse);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -89,7 +89,7 @@ function collectEpisodes($, title) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
     const title = $('h1').text().trim();
     const episodes = collectEpisodes($, title);
@@ -106,7 +106,7 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const [, playerSrc] = page.match(PLAYER_SRC_REG);
 
     const playerPage = await request.get(playerSrc, { headers: DEFAULT_HEADERS });
@@ -117,7 +117,7 @@ async function getQualities(url) {
     let sourceData = await request.post(API_URL, {
         headers: getHeaders({ Referer: playerSrc }),
         formData: formData
-    }, false);
+    });
 
     const sources = JSON.parse(sourceData.match(SOURCES_REG)[1]).sources;
     for (const source of sources) {

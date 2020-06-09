@@ -39,10 +39,9 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animeflix.io' });
 async function search(query) {
     let searchResults = [];
     const params = { q: query };
-    let searchResponse = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS })
-    searchResponse = JSON.parse(searchResponse).data;
+    const { data } = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
 
-    for (const { title, slug, cover_photo } of searchResponse) {
+    for (const { title, slug, cover_photo } of data) {
         searchResults.push(new SearchResult(
             title,
             `${ANIME_URL}/${slug}`,
@@ -63,12 +62,13 @@ async function getAnime(url) {
     let episodes = [];
     const [, slug] = url.match(/shows\/(.*)/);
     const headers = getHeaders({ Referer: url });
-    let meta = await request.get(META_URL, { qs: { slug }, headers });
-    let episodeData = await request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers });
 
-    meta = JSON.parse(meta).data;
-    episodeData = JSON.parse(episodeData);
-    const { title } = meta;
+    // Speed up fetching meta and episode information by requesting
+    // both concurrently
+    const [{ title }, episodeData] = await Promise.all([
+        request.get(META_URL, { qs: { slug }, headers }, true),
+        request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers }, true)
+    ]);
 
     if (episodeData['@type'] === 'Movie') {
         episodes.push(new Episode(
@@ -101,10 +101,8 @@ async function getQualities(url) {
     let fallbackQualities = new Map();
     const [, slug, episode_num] = url.match(/shows\/(.*)\/episode\-(\d+)/);
 
-    let episode = await request.get(EPISODE_URL, { qs: { episode_num, slug }, headers });
-    const { id } = JSON.parse(episode).data.current;
-    let downloadLinks = await request.get(VIDEO_LINKS_URL, { qs: { episode_id: id }, headers });
-    downloadLinks = JSON.parse(downloadLinks);
+    const { data: { current: { id: episode_id } } } = await request.get(EPISODE_URL, { qs: { episode_num, slug }, headers }, true);
+    const downloadLinks = await request.get(VIDEO_LINKS_URL, { qs: { episode_id }, headers }, true);
 
     for (const { provider, file, lang, resolution, type } of downloadLinks) {
         if (version !== lang || type !== 'mp4') {

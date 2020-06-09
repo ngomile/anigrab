@@ -56,7 +56,7 @@ async function search(query) {
     const searchText = await request.get(SEARCH_URL, {
         qs: params,
         headers: DEFAULT_HEADERS
-    }, false);
+    });
     const $ = cheerio.load(searchText);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -91,7 +91,7 @@ function collectEpisodes($) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const $ = cheerio.load(page);
     const title = $('.page-title').text();
     const episodes = collectEpisodes($);
@@ -108,11 +108,11 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, false);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS });
 
     let $ = cheerio.load(page);
     let realDLPage = $('a.btn').first().attr('href');
-    realDLPage = await request.get(realDLPage, { headers: DEFAULT_HEADERS }, false);
+    realDLPage = await request.get(realDLPage, { headers: DEFAULT_HEADERS });
 
     // Try to find the quality for the episode otherwise unknown quality
     let quality = QUALITY_REG.exec(realDLPage);
