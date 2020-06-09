@@ -63,10 +63,9 @@ function handleSearchResult({ title, slug, poster }) {
  */
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
-    const response = await request.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS });
-    const results = JSON.parse(response);
+    const { data } = await request.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS }, true);
     // Search results are stored in the data field
-    return results.data ? results.data.map(handleSearchResult) : [];
+    return data ? data.map(handleSearchResult) : [];
 }
 
 /**
@@ -78,9 +77,8 @@ async function search(query) {
  */
 async function getPageData(animeID, page = 1) {
     const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
-    const response = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
-    const data = JSON.parse(response);
-    return data;
+    const response = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
+    return response;
 }
 
 /**
@@ -112,7 +110,7 @@ function getEpisodes(title, url, animeData) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS });
+    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
     const [, title] = TITLE_REG.exec(page);
     const [, animeID] = ANIME_ID_REG.exec(page);
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
@@ -167,15 +165,15 @@ async function getEpisodeQualities(server, episodeID, session) {
     const version = versionToSub.get(config.version);
     let qualities = new Map();
     const params = { id: episodeID, m: 'embed', p: server, session: session };
-    const apiResult = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const { data = '' } = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
 
-    if (apiResult === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
-    const providerInfo = Object.values(JSON.parse(apiResult).data);
+    if (data === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
+    const providerInfo = Object.values(data);
 
     for (const info of providerInfo) {
         const [quality] = Object.keys(info);
         if (version === info[quality].audio) {
-            qualities.set(`${quality}p`, info[quality].url);
+            qualities.set(`${quality}p`, info[quality].kwik);
         }
     }
     return qualities;
@@ -190,7 +188,7 @@ async function getEpisodeQualities(server, episodeID, session) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const episodePage = await request.get(url, { headers: DEFAULT_HEADERS });
+    const episodePage = await request.get(url, { headers: DEFAULT_HEADERS }, true);
     const servers = getServers(episodePage);
     const [, episodeID, session] = ID_SESSION_REG.exec(episodePage);
 
