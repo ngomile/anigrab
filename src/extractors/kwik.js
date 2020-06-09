@@ -1,60 +1,46 @@
-'use strict';
-
-const puppeteer = require('puppeteer-core');
-
+const request = require('../request');
 const { ExtractedInfo } = require('./common');
-const config = require('../config').getConfig();
+const {
+    getHeaders,
+    bypassCaptcha,
+    generateFormData
+} = require('../utils');
 
-/** Path to browser executable to be used by puppeteer */
-const { browserExecutablePath } = config;
-/** Regular expression to block out unneeded requests to improve performance */
-const BLOCKED_RESOURCES_REG = /ads|inpagepush|css|vipicmou|cloud|png|ueuodgnrhb|shqbsdjatunl|hcaptcha|plyr|hls/;
+const OPTIONS = {
+    simple: false,
+    resolveWithFullResponse: true,
+    followAllRedirects: false,
+    followRedirect: false
+};
 
+let passToken;
 /**
  * Extracts stream url and referer from kwik
- * 
+ *
  * @param {object} obj
  * @param {string} obj.url
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
 module.exports.extract = async function ({ url }) {
-    let browser;
-    let streamUrl = '';
-    try {
-        // Replace url to target download page instead of embed page
-        url = url.replace(/\be\b/, 'f');
-        browser = await puppeteer.launch({
-            executablePath: browserExecutablePath
+    url = url.replace(/\be\b/, 'f');
+    const headers = getHeaders({ Referer: url });
+    let response;
+    if (!passToken) {
+        passToken = await bypassCaptcha(url, headers);
+        const { bypassURL, form } = await generateFormData(url, passToken, headers);
+        response = await request.post(bypassURL, {
+            headers,
+            form,
+            ...OPTIONS
         });
-        const page = await browser.newPage();
-        await page.setRequestInterception(true);
-        page.on('request', (request) => {
-            if (BLOCKED_RESOURCES_REG.test(request.url())) {
-                request.abort();
-            } else if (request.url().startsWith('https://files-eu')) {
-                streamUrl = request.url();
-                request.abort();
-            } else {
-                request.continue();
-            }
-        });
-        await page.goto(url, {
-            waitUntil: 'networkidle2'
-        });
-        await Promise.all([
-            page.waitForNavigation({
-                waitUntil: 'networkidle2'
-            }),
-            page.click('button')
-        ]);
-    } catch (error) {
-        console.error(error);
-        process.exit(1);
-    } finally {
-        if (browser) {
-            await browser.close();
-        }
     }
-    return new ExtractedInfo(streamUrl, url);
+
+    const [, obsfucatedJS] = response.body.match(/(var _.*?=.*)/);
+    let deobsfucatedJS;
+    eval(`eval = input => {deobsfucatedJS = input;}; ${obsfucatedJS}`);
+    const [, postURL, _token] = deobsfucatedJS.match(/action="([^"]+).*value="([^"]+)/);
+    const form = { _token };
+    response = await request.post(postURL, { headers, form, ...OPTIONS });
+    return new ExtractedInfo(response.headers.location, url);
 }
