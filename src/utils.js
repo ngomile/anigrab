@@ -4,8 +4,10 @@ const { spawn } = require('child_process');
 const readline = require('readline');
 const { promisify } = require('util');
 
-const request = require('./request');
+const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
+
+const request = require('./request');
 
 // Is there a better way to get class information without having to require?
 const {
@@ -37,7 +39,7 @@ function getHeaders(headers = {}) {
 async function extractKsplayer(url, referer = '') {
     referer = referer || url;
     let qualities = new Map();
-    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) }, false);
+    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
 
     const $ = cheerio.load(page);
     $('.download_links a').each(function (ind, element) {
@@ -60,13 +62,12 @@ async function extractGcloud(url) {
     let qualities = new Map();
     const [, id] = url.match(/v\/(.*)/);
     url = `https://gcloud.live/api/source/${id}`;
-    const resp = await request.post(url, { headers: getHeaders({ Referer: url }) }, false);
-    const jsonResp = JSON.parse(resp).data;
+    const { data } = await request.post(url, { headers: getHeaders({ Referer: url }) });
 
     // gcloud may respond with a string error message but when successful
     // responds with array
-    if (Array.isArray(jsonResp)) {
-        for (const { label: quality, file } of jsonResp) {
+    if (Array.isArray(data)) {
+        for (const { label: quality, file } of data) {
             qualities.set(quality, file);
         }
     }
@@ -89,7 +90,7 @@ async function extractVidstream(url, referer = '') {
     referer = referer || url;
     const headers = getHeaders({ 'Referer': referer });
     let qualities = new Map();
-    page = await request.get(url, { headers: headers });
+    page = await request.get(url, { headers: headers }, true);
 
     const $ = cheerio.load(page);
     $('.mirror_link').first().find('a').each(function (ind, element) {
@@ -195,10 +196,11 @@ async function input(prompt) {
  * @param {number} start 
  * @param {number} end 
  */
-function range(start, end) {
+function range(start, end = 0) {
     let numbers = [];
     if (start > end) {
-        return numbers;
+        end = start;
+        start = 0;
     }
     while (start < end) {
         numbers.push(start++);
@@ -345,10 +347,129 @@ async function extractQualities({ page, server, url, sourcesReg }) {
     return { qualities, extractor };
 }
 
+const choice = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/**
+ * Generates an array of random fake mouse movements
+ *
+ * @param {number} timestamp
+ * @returns {number[]}
+ */
+async function generateMouseMovements(timestamp) {
+    let mouseMovements = [];
+    for (const _ in range(choice(range(1000, 10000)))) {
+        timestamp += choice(range(10));
+        mouseMovements.push([
+            choice(range(500)),
+            choice(range(500)),
+            timestamp
+        ]);
+    }
+
+    return mouseMovements;
+}
+
+const OPTIONS = {
+    simple: false,
+    resolveWithFullResponse: true,
+    followAllRedirects: false,
+    followRedirect: false
+};
+
+/**
+ * Bypasses hcaptcha captcha pages
+ *
+ * @param {string} url
+ * @param {object} headers
+ * @returns {Promise<string>}
+ */
+async function bypassCaptcha(url, headers = {}) {
+    // Captcha bypassing taken and modified from 
+    // https://github.com/Futei/SineCaptcha/blob/master/main.py with thanks
+    const { host } = new URL(url);
+    while (true) {
+        const sitekey = uuidv4();
+        const form = { sitekey, host };
+        let response = await request.post('https://hcaptcha.com/getcaptcha', {
+            headers,
+            form,
+            ...OPTIONS
+        });
+
+        const { key, tasklist, request_type: job_mode } = response.body;
+        const tasks = tasklist.map(({ task_key }) => task_key);
+        const timestamp = Date.now() + choice(range(30, 120));
+        const answers = tasks.reduce((acc, curr) => {
+            acc[curr] = choice(['true', 'false']);
+            return acc;
+        }, {});
+
+        const mm = await generateMouseMovements(timestamp);
+        const body = {
+            answers,
+            sitekey,
+            serverdomain: host,
+            job_mode,
+            motionData: {
+                st: timestamp,
+                dct: timestamp,
+                mm
+            },
+            n: null,
+            c: null
+        };
+
+        response = await request.post(`https://hcaptcha.com/checkcaptcha/${key}`, {
+            headers,
+            body,
+            ...OPTIONS
+        });
+
+        const { pass } = response.body;
+        if (pass) {
+            return response.body.generated_pass_UUID;
+        }
+    }
+}
+
+/**
+ * Generates the final bypass url and the form data to be posted
+ * to the bypass url
+ *
+ * @param {string} url
+ * @param {string} token
+ * @param {object}
+ * @returns {Promise<object>}
+ */
+async function generateFormData(url, token, headers = {}) {
+    headers = { ...headers, Referer: url };
+    let response = await request.get(url, { headers, ...OPTIONS });
+    const { body } = response;
+    const [, action] = body.match(/action="([^"]+)/);
+    const { origin } = new URL(url);
+    const bypassURL = `${origin}${action}`;
+
+    const $ = cheerio.load(body);
+    let form = {};
+    $('form > input').each(function (ind, elem) {
+        form[$(this).attr('name')] = $(this).attr('value');
+    });
+
+    Object.assign(form, {
+        "id": $('strong').first().text(),
+        "g-recaptcha-response": token,
+        "h-captcha-response": token
+    });
+
+    return { bypassURL, form };
+}
+
 module.exports = {
+    bypassCaptcha,
     extractKsplayer,
     extractVidstream,
     getHeaders,
+    generateFormData,
     formatQualities,
     parseEpisodeGrammar,
     input,
