@@ -1,10 +1,17 @@
 'use strict';
 
-const rp = require('request-promise');
-const cloudscraper = require('cloudscraper');
+const rp = require('request-promise').defaults({
+    jar: true,
+    timeout: 35000,
+    json: true
+});
+const cloudscraper = require('cloudscraper').defaults({
+    jar: true,
+    timeout: 35000,
+    json: true
+});
 
-async function request(url, options, cf = true) {
-    options.timeout = 15000;
+async function request(url, options, cf = false) {
     const requestHandler = cf ? cloudscraper : rp;
     let retries = 0;
     const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
@@ -31,12 +38,12 @@ async function request(url, options, cf = true) {
     }
 }
 
-async function get(url, options, cf = true) {
+async function get(url, options, cf = false) {
     options.method = 'GET';
     return await request(url, options, cf);
 }
 
-async function post(url, options, cf = true) {
+async function post(url, options, cf = false) {
     options.method = 'POST';
     return await request(url, options, cf);
 }
