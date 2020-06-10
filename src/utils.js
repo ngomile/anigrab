@@ -7,7 +7,11 @@ const { promisify } = require('util');
 const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
 
-const request = require('./request');
+const {
+    delay,
+    timeout,
+    ...request
+} = require('./request');
 
 // Is there a better way to get class information without having to require?
 const {
@@ -292,11 +296,18 @@ function getOtherQuality(qualities, fallbackQualities = '') {
  */
 async function executeCommand(cmd, args = []) {
     // Taken from https://stackoverflow.com/questions/58570325/how-to-turn-child-process-spawns-promise-syntax-to-async-await-syntax
+    let output = [];
     const child = spawn(cmd, args);
 
     for await (const chunk of child.stdout) {
-        // shows output on the same line
-        process.stdout.write(`${chunk}\r`);
+        output.push(chunk.toString());
+        // Calling node is mostly for cases where deobsfucation is needed
+        // this avoids polluting the console by preventing showing node
+        // output
+        if (cmd !== 'node') {
+            // shows output on the same line
+            process.stdout.write(`${chunk}\r`);
+        }
     }
 
     let error = '';
@@ -311,6 +322,8 @@ async function executeCommand(cmd, args = []) {
     if (exitCode) {
         throw new Error(`subprocess error exit ${exitCode}, ${error}`);
     }
+
+    return output.join('');
 }
 
 /**
@@ -386,6 +399,8 @@ const OPTIONS = {
 async function bypassCaptcha(url, headers = {}) {
     // Captcha bypassing taken and modified from 
     // https://github.com/Futei/SineCaptcha/blob/master/main.py with thanks
+    console.log('Now solving captcha, this can take a while. Please be patient.');
+    let delayAttempt = 1;
     const { host } = new URL(url);
     while (true) {
         const sitekey = uuidv4();
@@ -428,6 +443,13 @@ async function bypassCaptcha(url, headers = {}) {
         const { pass } = response.body;
         if (pass) {
             return response.body.generated_pass_UUID;
+        } else {
+            console.error('Failed to bypass captcha, trying again...');
+            // Enforce rate limiting to avoid getting rate-limit-exceeded response
+            // error, everytime bypass fails
+            await timeout(delay(delayAttempt));
+            delayAttempt++;
+            delayAttempt = delayAttempt > 4 ? 2 : delayAttempt;
         }
     }
 }
