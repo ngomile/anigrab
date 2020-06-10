@@ -37,7 +37,7 @@ Downloading an anime is as simple as typing in the name of an anime which initia
 anigrab beastars -e 10
 ```
 
-This will make anigrab download episode 10 of Beastars from animepahe by default, to specify a site you can use the -s flag
+This will make anigrab download episode 10 of Beastars from animekisa by default, to specify a site you can use the -s flag
 
 ```
 anigrab beastars -e 10 -s gogoanime
