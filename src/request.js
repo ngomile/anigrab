@@ -11,12 +11,12 @@ const cloudscraper = require('cloudscraper').defaults({
     json: true
 });
 
+const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
+const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 async function request(url, options, cf = false) {
     const requestHandler = cf ? cloudscraper : rp;
     let retries = 0;
-    const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
-    const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
-
     const httpRequest = async (url, options) => {
         try {
             return await requestHandler(url, options);
@@ -50,5 +50,7 @@ async function post(url, options, cf = false) {
 
 module.exports = {
     get,
-    post
+    post,
+    delay,
+    timeout
 }
