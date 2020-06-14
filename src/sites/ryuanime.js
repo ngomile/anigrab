@@ -1,14 +1,13 @@
 'use strict';
 
-const request = require('../request');
 const cheerio = require('cheerio');
 
+const request = require('../request');
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     getHeaders,
     formatQualities
@@ -71,9 +70,7 @@ function collectEpisodes($) {
     $('.card-body .row a').each(function (ind, element) {
         let title = $(this).text();
         // Only getting subbed, should be user configurable
-        if (!title.includes(version)) {
-            return;
-        }
+        if (!title.includes(version)) return;
         let url = $(this).attr('href');
         const episode = new Episode(title, url);
         episodes.push(episode);
@@ -111,11 +108,8 @@ async function getQualities(url) {
         for (const { id, host, type } of sources) {
             if (host === server && type === version) {
                 extractor = host;
-                if (host === 'trollvid') {
-                    qualities.set('unknown', `https://trollvid.net/embed/${id}`);
-                } else if (host === 'mp4upload') {
-                    qualities.set('unknown', `https://www.mp4upload.com/embed-${id}.html`);
-                }
+                if (host === 'trollvid') qualities.set('unknown', `https://trollvid.net/embed/${id}`);
+                else if (host === 'mp4upload') qualities.set('unknown', `https://www.mp4upload.com/embed-${id}.html`);
             }
         }
         return { qualities, extractor };
@@ -127,10 +121,7 @@ async function getQualities(url) {
     let { extractor, qualities } = handleSources(sources, version, server);
 
     for (const fallbackServer of fallbackServers) {
-        if (qualities.size) {
-            break;
-        }
-
+        if (qualities.size) break;
         ({ extractor, qualities } = handleSources(sources, version, fallbackServer));
     }
 
@@ -138,6 +129,7 @@ async function getQualities(url) {
         extractor,
         referer: url
     });
+
     return { qualities };
 }
 

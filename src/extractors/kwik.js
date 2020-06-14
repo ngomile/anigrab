@@ -1,3 +1,5 @@
+'use strict';
+
 const request = require('../request');
 const { ExtractedInfo } = require('./common');
 const {
@@ -30,11 +32,7 @@ module.exports.extract = async function ({ url }) {
     if (!passToken) {
         passToken = await bypassCaptcha(url, headers);
         const { bypassURL, form } = await generateFormData(url, passToken, headers);
-        response = await request.post(bypassURL, {
-            headers,
-            form,
-            ...OPTIONS
-        });
+        response = await request.post(bypassURL, { headers, form, ...OPTIONS });
     } else {
         response = await request.get(url, { headers, ...OPTIONS });
     }

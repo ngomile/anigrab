@@ -98,13 +98,11 @@ async function main() {
         return;
     }
 
-    if (argv.filterTitle) {
-        filterTitle = new RegExp(argv.filterTitle);
-    }
+    if (argv.filterTitle) filterTitle = new RegExp(argv.filterTitle);
 
     const site = siteLoader(animeurl) || siteLoader(argv.site);
     if (!site) {
-        console.log('Site not found for %s or %s', animeurl, argv.site);
+        console.log(`Site not found for ${animeurl} or ${argv.site}`);
         return;
     }
 
@@ -119,13 +117,9 @@ async function main() {
     }
 
     // set to skip downloading if user just wants to see urls or write to file
-    if (argv.write || argv.url) {
-        argv.skip = true;
-    }
+    if (argv.write || argv.url) argv.skip = true;
 
-    if (argv.write) {
-        writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
-    }
+    if (argv.write) writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
 
     console.log(`Extracting ${animeurl}`);
     const anime = await site.getAnime(animeurl);
@@ -133,10 +127,7 @@ async function main() {
     // if title filter is specified, filter the episodes first then proceed to
     // parse episode grammar to avoid breaking the episodes returned
     const episodes = parseEpisodeGrammar(anime.episodes.filter(episode => {
-        if (filterTitle && !filterTitle.test(episode.title)) {
-            return false;
-        }
-        return true;
+        return filterTitle && !filterTitle.test(episode.title) ? false : true;
     }), argv.episodes);
     const args = episodes.map(({ url }) => [url]);
     const qualitiesList = await executeTasks(site.getQualities, ...args);
@@ -156,13 +147,9 @@ async function main() {
         const { extract } = extractorLoader(quality.extractor);
         const { url, referer } = await extract(quality);
 
-        if (argv.url && url !== '') {
-            console.log(url);
-        }
+        if (argv.url && url !== '') console.log(url);
 
-        if (argv.write) {
-            writeStream.write(`${url}\n`);
-        }
+        if (argv.write) writeStream.write(`${url}\n`);
 
         if (url && !argv.skip) {
             const { download } = downloadLoader(argv.externalDownloader);
@@ -171,11 +158,8 @@ async function main() {
             try {
                 let ext = url.match(/(mkv|mp4)/);
 
-                if (ext && ext.length) {
-                    [, ext] = ext;
-                } else {
-                    ext = 'mp4';
-                }
+                if (ext.length) [, ext] = ext;
+                else ext = 'mp4';
 
                 const fileName = `${episodes[ind].title}.${ext}`;
                 await download(argv.directory, fileName, url, referer);

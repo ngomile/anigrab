@@ -1,14 +1,13 @@
 'use strict';
 
-const request = require('../request');
 const cheerio = require('cheerio');
 
+const request = require('../request');
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     getHeaders,
     formatQualities
@@ -119,7 +118,7 @@ async function getQualities(url) {
         formData: formData
     });
 
-    const sources = JSON.parse(sourceData.match(SOURCES_REG)[1]).sources;
+    const { sources } = JSON.parse(sourceData.match(SOURCES_REG)[1]);
     for (const source of sources) {
         qualities.set(source.label, source.src);
     }

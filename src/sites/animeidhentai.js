@@ -1,14 +1,13 @@
 'use strict';
 
-const request = require('../request');
 const cheerio = require('cheerio');
 
+const request = require('../request');
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     extractKsplayer,
     getHeaders,

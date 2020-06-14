@@ -8,9 +8,7 @@ const EXTRACTORS = module.exports.EXTRACTORS = [
 ];
 
 module.exports.extractorLoader = function (extractorName) {
-    if (!EXTRACTORS.includes(extractorName)) {
-        return null
-    };
+    if (!EXTRACTORS.includes(extractorName)) return null;
     const extractor = require(`./${extractorName}`);
     return extractor;
 }

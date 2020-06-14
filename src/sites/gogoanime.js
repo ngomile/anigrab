@@ -1,14 +1,13 @@
 'use strict';
 
-const request = require('../request');
 const cheerio = require('cheerio');
 
+const request = require('../request');
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     getHeaders,
     formatQualities,
@@ -129,9 +128,7 @@ async function getQualities(url) {
 
     let { qualities, extractor } = await extractQualities(info);
     for (const fallbackServer of fallbackServers) {
-        if (qualities.size) {
-            break;
-        }
+        if (qualities.size) break;
         ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
     }
 

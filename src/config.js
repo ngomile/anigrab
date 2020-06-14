@@ -57,9 +57,7 @@ function readConfig() {
 }
 
 function update(gkey, toObj, fromObj) {
-    if (!toObj.hasOwnProperty(gkey)) {
-        toObj[gkey] = {}
-    }
+    if (!toObj.hasOwnProperty(gkey)) toObj[gkey] = {}
 
     for (const [key, val] of Object.entries(fromObj[gkey])) {
         if (!toObj[gkey].hasOwnProperty(key)) {
@@ -71,9 +69,7 @@ function update(gkey, toObj, fromObj) {
 }
 
 function getConfig() {
-    if (typeof Config === 'object' && Config !== null) {
-        return Config;
-    }
+    if (typeof Config === 'object' && Config !== null) return Config;
 
     try {
         fs.mkdirSync(CONFIG_DIR, { recursive: true });

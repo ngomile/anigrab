@@ -101,22 +101,24 @@ async function getQualities(url) {
     let fallbackQualities = new Map();
     const [, slug, episode_num] = url.match(/shows\/(.*)\/episode\-(\d+)/);
 
-    const { data: { current: { id: episode_id } } } = await request.get(EPISODE_URL, { qs: { episode_num, slug }, headers }, true);
+    const {
+        data: {
+            current: {
+                id: episode_id
+            }
+        }
+    } = await request.get(EPISODE_URL, { qs: { episode_num, slug }, headers }, true);
     const downloadLinks = await request.get(VIDEO_LINKS_URL, { qs: { episode_id }, headers }, true);
 
     for (const { provider, file, lang, resolution, type } of downloadLinks) {
-        if (version !== lang || type !== 'mp4') {
-            continue;
-        }
+        if (version !== lang || type !== 'mp4') continue;
 
         if (server === provider) {
             qualities.set(resolution, file);
         } else if (fallbackServers.includes(provider)) {
-            if (fallbackQualities.has(provider)) {
-                fallbackQualities.get(provider).set(resolution, file);
-            } else {
-                fallbackQualities.set(provider, new Map([[resolution, file]]));
-            }
+            if (fallbackQualities.has(provider)) fallbackQualities.get(provider).set(resolution, file);
+            else fallbackQualities.set(provider, new Map([[resolution, file]]));
+
         }
     }
 

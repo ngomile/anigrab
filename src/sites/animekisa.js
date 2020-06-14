@@ -1,14 +1,13 @@
 'use strict';
 
-const request = require('../request');
 const cheerio = require('cheerio');
 
+const request = require('../request');
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     getHeaders,
     extractQualities,
@@ -44,9 +43,7 @@ function collectSearchResults($) {
         const url = `${SITE_URL}${$(this).attr('href')}`;
         const poster = `${SITE_URL}${$(this).find('img').attr('src')}`;
         // Avoid putting garbage result in search results
-        if (url === SITE_URL + '/') {
-            return;
-        }
+        if (url === `${SITE_URL}/`) return;
         const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
@@ -119,9 +116,7 @@ async function getQualities(url) {
 
     let { qualities, extractor } = await extractQualities(info);
     for (const fallbackServer of fallbackServers) {
-        if (qualities.size) {
-            break;
-        }
+        if (qualities.size) break;
         ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
     }
 

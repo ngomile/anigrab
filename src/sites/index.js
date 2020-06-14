@@ -16,12 +16,8 @@ const SITES = module.exports.SITES = [
 const SITE_NAME_REG = /https?:\/\/(?:www\d{0,2}\.)?(.*)\./;
 
 module.exports.siteLoader = function (siteName) {
-    if (siteName.startsWith('http')) {
-        [, siteName] = siteName.match(SITE_NAME_REG);
-    }
-    if (!SITES.includes(siteName)) {
-        return null;
-    }
+    if (siteName.startsWith('http')) [, siteName] = siteName.match(SITE_NAME_REG);
+    if (!SITES.includes(siteName)) return null;
     const site = require(`./${siteName}`);
     return site;
 }

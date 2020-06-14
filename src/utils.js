@@ -102,12 +102,8 @@ async function extractVidstream(url, referer = '') {
         let quality = url.match(/(\d{3,4}P)/);
         // If quality regex worked use destructuring to capture the matching group
         // from quality otherwise quality is unknown
-        if (quality) {
-            [, quality] = quality;
-        }
-        else {
-            quality = 'unknown';
-        }
+        if (quality) [, quality] = quality;
+        else quality = 'unknown';
         quality = quality.toLowerCase();
         qualities.set(quality, url);
     });
@@ -153,9 +149,7 @@ function parseEpisodeGrammar(episodes, grammar = '') {
         if (SINGLE_EPISODE_REG.test(episodeGrammar)) {
             let [, num] = SINGLE_EPISODE_REG.exec(episodeGrammar);
             num = parseInt(num) - 1;
-            if (num < episodes.length) {
-                parsedEpisodes.push(episodes[num]);
-            }
+            if (num < episodes.length) parsedEpisodes.push(episodes[num]);
         } else if (RANGED_EPISODES_REG.test(episodeGrammar)) {
             let [, start, end] = RANGED_EPISODES_REG.exec(episodeGrammar);
             parsedEpisodes.push(...episodes.slice(start - 1, end));
@@ -267,12 +261,11 @@ function getOtherQuality(qualities, fallbackQualities = '') {
 
     let otherQualites = [];
     for (const otherQuality of qualities.keys()) {
-        if (fallbackQualities) {
-            if (fallbackQualities.includes(otherQuality)) {
-                otherQualites.push(otherQuality);
-            }
+        if (fallbackQualities && fallbackQualities.includes(otherQuality)) {
+            otherQualites.push(otherQuality);
             continue;
         }
+        // No fallback quality specified so add any
         otherQualites.push(otherQuality);
     }
     // Places qualities from highest to lowest
@@ -319,9 +312,7 @@ async function executeCommand(cmd, args = []) {
         child.on('close', resolve);
     });
 
-    if (exitCode) {
-        throw new Error(`subprocess error exit ${exitCode}, ${error}`);
-    }
+    if (exitCode) throw new Error(`subprocess error exit ${exitCode}, ${error}`);
 
     return output.join('');
 }

@@ -2,12 +2,12 @@
 
 const rp = require('request-promise').defaults({
     jar: true,
-    timeout: 35000,
+    timeout: 30000,
     json: true
 });
 const cloudscraper = require('cloudscraper').defaults({
     jar: true,
-    timeout: 35000,
+    timeout: 30000,
     json: true
 });
 

@@ -1,7 +1,6 @@
 'use strict';
 
 const request = require('../request');
-
 const { ExtractedInfo } = require('./common');
 const { getHeaders } = require('../utils');
 

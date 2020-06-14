@@ -1,9 +1,9 @@
 'use strict';
 
 const request = require('../request');
-
 const { ExtractedInfo } = require('./common');
 const {
+    executeCommand,
     getHeaders
 } = require('../utils');
 
@@ -26,8 +26,8 @@ module.exports.extract = async function ({ url, referer = '' }) {
         console.log(`The file has been deleted or licensed at ${url}`);
         streamURL = '';
     } else {
-        const [, obsfucatedJS] = page.match(/eval\((.*)\)/);
-        const deobsfucatedJS = eval(`const extract = () => (${obsfucatedJS}); extract()`);
+        const [, obsfucatedJS] = page.match(/(eval\(.*\))/);
+        const deobsfucatedJS = await executeCommand('node', ['-e', `eval=console.log; ${obsfucatedJS}`]);
         [, streamURL] = deobsfucatedJS.match(/src[:\(]\s*"([^"]+)/);
     }
     return new ExtractedInfo(streamURL, url);

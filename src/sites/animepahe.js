@@ -1,13 +1,11 @@
 'use strict';
 
 const request = require('../request');
-
 const {
     SearchResult,
     Anime,
     Episode
 } = require('./common');
-
 const {
     getHeaders,
     formatQualities,
@@ -91,7 +89,7 @@ async function getPageData(animeID, page = 1) {
  */
 function getEpisodes(title, url, animeData) {
     let episodes = [];
-    const data = animeData.data ? animeData.data : [];
+    const { data = [] } = animeData;
 
     for (const { episode: episodeNum, id } of data) {
         // Have to correct format the title and url
@@ -172,9 +170,8 @@ async function getEpisodeQualities(server, episodeID, session) {
 
     for (const info of providerInfo) {
         const [quality] = Object.keys(info);
-        if (version === info[quality].audio) {
-            qualities.set(`${quality}p`, info[quality].kwik);
-        }
+        const { audio, kwik } = info[quality];
+        if (version === audio) qualities.set(`${quality}p`, kwik);
     }
     return qualities;
 }
@@ -195,9 +192,7 @@ async function getQualities(url) {
     if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
-        if (!SUPPORTED_SERVERS.includes(server)) {
-            continue;
-        }
+        if (!SUPPORTED_SERVERS.includes(server)) continue;
         qualities = await getEpisodeQualities(server, episodeID, session);
         qualities = formatQualities(qualities, {
             extractor: server,

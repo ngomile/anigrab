@@ -84,11 +84,9 @@ async function getAnime(url) {
     for (const { number, source } of episodesResponse) {
         const decryptedSourceUrl = `${SITE_URL}${decrypt(source)}`;
         let title = decryptedSourceUrl.match(TITLE_REG);
-        if (title) {
-            [, title] = title;
-        } else {
-            title = decryptedSourceUrl.split(/\b\/\b/)[3].split('.')[0];
-        }
+        if (title) [, title] = title;
+        else title = decryptedSourceUrl.split(/\b\/\b/)[3].split('.')[0];
+
         episodes.push(new Episode(
             `${title} Episode ${number}`,
             decryptedSourceUrl
@@ -107,11 +105,9 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let quality = url.match(QUALITY_REG);
-    if (quality) {
-        [, quality] = quality;
-    } else {
-        quality = 'unknown';
-    }
+    if (quality) [, quality] = quality;
+    else quality = 'unknown';
+
     let qualities = new Map([[quality, url]]);
     return {
         qualities: formatQualities(qualities, {
