@@ -7,7 +7,8 @@ const yargs = require('yargs');
 
 const {
     downloadLoader,
-    DOWNLOADERS
+    DOWNLOADERS,
+    playerLoader
 } = require('../external/');
 const {
     siteLoader,
@@ -67,6 +68,12 @@ const argv = yargs.
             describe: 'the directory to download the file to',
             type: 'string'
         },
+        'p': {
+            alias: 'play',
+            default: false,
+            describe: 'play the episode using mpv',
+            type: 'boolean'
+        },
         'sk': {
             alias: 'skip',
             default: false,
@@ -117,7 +124,7 @@ async function main() {
     }
 
     // set to skip downloading if user just wants to see urls or write to file
-    if (argv.write || argv.url) argv.skip = true;
+    if (argv.write || argv.url || argv.play) argv.skip = true;
 
     if (argv.write) writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
 
@@ -150,6 +157,11 @@ async function main() {
         if (argv.url && url !== '') console.log(url);
 
         if (argv.write) writeStream.write(`${url}\n`);
+
+        if (argv.play) {
+            const { play } = playerLoader('mpv');
+            await play(url, referer);
+        }
 
         if (url && !argv.skip) {
             const { download } = downloadLoader(argv.externalDownloader);

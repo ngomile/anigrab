@@ -8,6 +8,7 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 * Specify the episodes you want to download
 * Configure downloading options and site options
 * intuitively handles any quality from 1080p to even the most elusive ones
+* Can stream videos right from the sites
 
 ## Supported Sites
 * animeflix
@@ -81,6 +82,8 @@ You can specify some command line flags that affect the behavior of anigrab, the
 --xd, --external-downloader     the external downloader to use to download the file, aria2c by default and currently aria2c only supported
 
 --ft, --filter-title            regular expression to filter episodes based on their titles
+
+-p, --play                      plays the episode using mpv
 ```
 
 ### Usage as Library

@@ -17,3 +17,13 @@ module.exports.downloadLoader = function (downloaderName) {
     }
     return require(`./downloaders/${downloaderName}`);
 }
+
+/**
+ * Dynamically loads the player which happens to be mpv
+ * for now
+ *
+ * @param {string} playerName
+ */
+module.exports.playerLoader = function (playerName) {
+    return require(`./players/${playerName}`);
+}

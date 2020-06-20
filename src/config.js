@@ -17,6 +17,11 @@ const DEFAULT_CONFIG = {
         site: 'animekisa',
         aria2c: ['-c true', '-x 2', '-V']
     },
+    players: {
+        mpv: [
+
+        ]
+    },
     siteconfig: {
         animekisa: {
             server: 'gcloud',
