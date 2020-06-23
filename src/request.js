@@ -38,12 +38,12 @@ async function request(url, options, cf = false) {
     }
 }
 
-async function get(url, options, cf = false) {
+async function get(url, options = {}, cf = false) {
     options.method = 'GET';
     return await request(url, options, cf);
 }
 
-async function post(url, options, cf = false) {
+async function post(url, options = {}, cf = false) {
     options.method = 'POST';
     return await request(url, options, cf);
 }
