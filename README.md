@@ -11,6 +11,7 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 * Can stream videos right from the sites
 
 ## Supported Sites
+* 4anime
 * animeflix
 * animefreak
 * animekisa
