@@ -30,7 +30,7 @@ module.exports.extract = async function ({ url }) {
     const headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
     let response;
     if (!passToken) {
-        passToken = await bypassCaptcha(url, headers);
+        passToken = await bypassCaptcha(url);
         const { bypassURL, form } = await generateFormData(url, passToken, headers);
         response = await request.post(bypassURL, { headers, form, ...OPTIONS });
     } else {
@@ -39,7 +39,7 @@ module.exports.extract = async function ({ url }) {
 
     const [, obsfucatedJS] = response.body.match(/(var _[\w]+=.*)/);
     const deobsfucatedJS = await executeCommand('node', ['-e', `eval=console.log; ${obsfucatedJS}`]);
-    const [, postURL, _token] = deobsfucatedJS.match(/action="([^"]+).*value="([^"]+)/);
+    const [, postURL, _token] = deobsfucatedJS.match(/action="([^"]+).*?value="([^"]+)/);
     const form = { _token };
     response = await request.post(postURL, { headers, form, ...OPTIONS });
     return new ExtractedInfo(response.headers.location, url);

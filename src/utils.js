@@ -4,8 +4,8 @@ const { spawn } = require('child_process');
 const readline = require('readline');
 const { promisify } = require('util');
 
-const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
+const solveCaptcha = require('hcaptcha-solver');
 
 const {
     delay,
@@ -351,28 +351,6 @@ async function extractQualities({ page, server, url, sourcesReg }) {
     return { qualities, extractor };
 }
 
-const choice = arr => arr[Math.floor(Math.random() * arr.length)];
-
-/**
- * Generates an array of random fake mouse movements
- *
- * @param {number} timestamp
- * @returns {number[]}
- */
-async function generateMouseMovements(timestamp) {
-    let mouseMovements = [];
-    for (const _ in range(choice(range(1000, 10000)))) {
-        timestamp += choice(range(10));
-        mouseMovements.push([
-            choice(range(500)),
-            choice(range(500)),
-            timestamp
-        ]);
-    }
-
-    return mouseMovements;
-}
-
 const OPTIONS = {
     simple: false,
     resolveWithFullResponse: true,
@@ -384,63 +362,17 @@ const OPTIONS = {
  * Bypasses hcaptcha captcha pages
  *
  * @param {string} url
- * @param {object} headers
  * @returns {Promise<string>}
  */
-async function bypassCaptcha(url, headers = {}) {
-    // Captcha bypassing taken and modified from 
-    // https://github.com/Futei/SineCaptcha/blob/master/main.py with thanks
-    console.log('Now solving captcha, this can take a while. Please be patient.');
-    let delayAttempt = 1;
-    const { host } = new URL(url);
-    while (true) {
-        const sitekey = uuidv4();
-        const form = { sitekey, host };
-        let response = await request.post('https://hcaptcha.com/getcaptcha', {
-            headers,
-            form,
-            ...OPTIONS
-        });
-
-        const { key, tasklist, request_type: job_mode } = response.body;
-        const tasks = tasklist.map(({ task_key }) => task_key);
-        const timestamp = Date.now() + choice(range(30, 120));
-        const answers = tasks.reduce((acc, curr) => {
-            acc[curr] = choice(['true', 'false']);
-            return acc;
-        }, {});
-
-        const mm = await generateMouseMovements(timestamp);
-        const body = {
-            answers,
-            sitekey,
-            serverdomain: host,
-            job_mode,
-            motionData: {
-                st: timestamp,
-                dct: timestamp,
-                mm
-            },
-            n: null,
-            c: null
-        };
-
-        response = await request.post(`https://hcaptcha.com/checkcaptcha/${key}`, {
-            headers,
-            body,
-            ...OPTIONS
-        });
-
-        const { pass } = response.body;
-        if (pass) {
-            return response.body.generated_pass_UUID;
-        } else {
-            console.error('Failed to bypass captcha, trying again...');
-            // Enforce rate limiting to avoid getting rate-limit-exceeded response
-            // error, everytime bypass fails
-            await timeout(delay(delayAttempt));
-            delayAttempt++;
-            delayAttempt = delayAttempt > 4 ? 2 : delayAttempt;
+async function bypassCaptcha(url) {
+    let passToken;
+    console.log('Bypassing captcha please wait...');
+    while (!passToken) {
+        try {
+            passToken = await solveCaptcha(url);
+            return passToken;
+        } catch (error) {
+            console.error('Failed to generate pass token, trying again');
         }
     }
 }

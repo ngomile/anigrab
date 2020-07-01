@@ -17,7 +17,7 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 * animekisa
 * animeidhentai
 * animeout
-* animepahe (kwik is inaccessible)
+* animepahe
 * gogoanime
 * hentaihaven
 * ryuanime
