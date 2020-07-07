@@ -1,6 +1,8 @@
 'use strict';
 
 const request = require('../request');
+const os = require('os');
+const fs = require('fs');
 const { ExtractedInfo } = require('./common');
 const {
     executeCommand,
@@ -30,9 +32,24 @@ module.exports.extract = async function ({ url }) {
     const headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
     let response;
     if (!passToken) {
-        passToken = await bypassCaptcha(url);
-        const { bypassURL, form } = await generateFormData(url, passToken, headers);
-        response = await request.post(bypassURL, { headers, form, ...OPTIONS });
+        const cookiePath = os.tmpdir() + '/kwik'
+        var success = false
+        if (fs.existsSync(cookiePath)) {
+            const cookies = JSON.parse(fs.readFileSync(cookiePath).toString())
+            const cookieJar = request.jar() //Atm this doesn't work
+            cookies.forEach(function(cookie) {
+                cookieJar.setCookie(cookie, url)
+            })
+            response = await request.get(url, { headers, jar: cookieJar});
+            success = response.req.res.statusCode == 200
+        }
+
+        if (!success) {
+            passToken = await bypassCaptcha(url);
+            const { bypassURL, form } = await generateFormData(url, passToken, headers);
+            response = await request.post(bypassURL, { headers, form, ...OPTIONS });
+            fs.writeFileSync(cookiePath, JSON.stringify(response.req.res.caseless.dict['set-cookie']))
+        }
     } else {
         response = await request.get(url, { headers, ...OPTIONS });
     }
