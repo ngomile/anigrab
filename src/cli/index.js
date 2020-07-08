@@ -168,7 +168,7 @@ async function main() {
             // Avoid stopping the whole download process because of an error
             // will still console.error the error though
             try {
-                let ext = url.match(/(mkv|mp4)/);
+                let ext = url.match(/(mkv|mp4)/) || [];
 
                 if (ext.length) [, ext] = ext;
                 else ext = 'mp4';
