@@ -1,15 +1,22 @@
 'use strict';
 
-const rp = require('request-promise').defaults({
-    jar: true,
-    timeout: 30000,
-    json: true
-});
-const cloudscraper = require('cloudscraper').defaults({
-    jar: true,
-    timeout: 30000,
-    json: true
-});
+const path = require('path');
+const fs = require('fs');
+
+const FileCookieStore = require('tough-cookie-filestore');
+let rp = require('request-promise');
+let cloudscraper = require('cloudscraper');
+
+const { CONFIG_DIR } = require('./config');
+
+const COOKIES_FILE = path.join(CONFIG_DIR, 'cookies.json');
+if (!fs.existsSync(COOKIES_FILE)) {
+    fs.writeFileSync(COOKIES_FILE, '');
+}
+
+const jar = rp.jar(new FileCookieStore(COOKIES_FILE));
+rp = rp.defaults({ jar, timeout: 30000, json: true });
+cloudscraper = cloudscraper.defaults({ jar: true, timeout: 30000, json: true });
 
 const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
