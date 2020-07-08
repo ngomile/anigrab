@@ -48,9 +48,14 @@ async function post(url, options = {}, cf = false) {
     return await request(url, options, cf);
 }
 
+async function jar() { 
+    return await rp.jar() 
+}
+
 module.exports = {
     get,
     post,
     delay,
-    timeout
+    timeout, 
+    jar
 }
