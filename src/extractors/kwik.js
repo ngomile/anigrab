@@ -3,6 +3,7 @@
 const request = require('../request');
 const { ExtractedInfo } = require('./common');
 const {
+    cache,
     executeCommand,
     getHeaders,
     bypassCaptcha,
@@ -17,7 +18,6 @@ const OPTIONS = {
     followRedirect: false
 };
 
-let passToken;
 /**
  * Extracts stream url and referer from kwik
  *
@@ -26,11 +26,18 @@ let passToken;
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
 module.exports.extract = async function ({ url }) {
-    url = url.replace(/\be\b/, 'f');
-    const headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
     let response;
+    url = url.replace(/\be\b/, 'f');
+    const { hostname } = new URL(url);
+
+    let headers = cache.getKey('kwikHeaders');
+    let passToken = cache.getKey(hostname);
+    // If pass token not found in cache then cookies were not stored
+    // from prior requests. Get pass token again.
     if (!passToken) {
         passToken = await bypassCaptcha(url);
+        headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
+        cache.setKey('kwikHeaders', headers);
         const { bypassURL, form } = await generateFormData(url, passToken, headers);
         response = await request.post(bypassURL, { headers, form, ...OPTIONS });
     } else {
