@@ -19,6 +19,9 @@ const {
     SearchResult
 } = require('./sites/common');
 const { USER_AGENTS } = require('./user_agents');
+const Cache = require('./cache');
+
+const cache = new Cache('store');
 
 /**
  * Creates an object of headers
@@ -365,16 +368,21 @@ const OPTIONS = {
  * @returns {Promise<string>}
  */
 async function bypassCaptcha(url) {
-    let passToken;
-    console.log('Bypassing captcha please wait...');
-    while (!passToken) {
-        try {
-            passToken = await solveCaptcha(url);
-            return passToken;
-        } catch (error) {
-            console.error('Failed to generate pass token, trying again');
+    const { hostname } = new URL(url);
+    let passToken = cache.getKey(hostname);
+    if (!passToken) {
+        console.log('Bypassing captcha please wait...');
+        while (!passToken) {
+            try {
+                passToken = await solveCaptcha(url);
+                cache.setKey(hostname, passToken);
+            } catch (error) {
+                console.error('Failed to generate pass token, trying again');
+            }
         }
+
     }
+    return passToken;
 }
 
 /**
@@ -411,6 +419,7 @@ async function generateFormData(url, token, headers = {}) {
 
 module.exports = {
     bypassCaptcha,
+    cache,
     extractKsplayer,
     extractVidstream,
     getHeaders,
