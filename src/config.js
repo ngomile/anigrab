@@ -105,5 +105,6 @@ function getConfig() {
 }
 
 module.exports = {
-    getConfig
+    getConfig,
+    CONFIG_DIR
 };
