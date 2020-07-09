@@ -22,6 +22,8 @@ const API_URL = 'https://animepahe.com/api';
 
 /** Regular expression to match the id of the anime */
 const ANIME_ID_REG = /&id=(\d+)/;
+/** Regular expression to match part of episode url */
+const ANIME_CODE_REG = /https:\/\/animepahe.com\/anime\/(.*)"/;
 /** Regular expression to match the server the episode is on */
 const SERVER_REG = /data-provider="([^"]+)/g;
 /** Regular expression to extract the id and session for the episode */
@@ -91,10 +93,10 @@ function getEpisodes(title, url, animeData) {
     let episodes = [];
     const { data = [] } = animeData;
 
-    for (const { episode: episodeNum, id } of data) {
+    for (const { episode: episodeNum, session } of data) {
         // Have to correct format the title and url
         const _title = `${title} Episode ${episodeNum}`;
-        const _url = `${url}/${id}`;
+        const _url = `${url}/${session}`;
         const episode = new Episode(_title, _url);
         episodes.push(episode);
     }
@@ -111,6 +113,9 @@ async function getAnime(url) {
     const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
     const [, title] = TITLE_REG.exec(page);
     const [, animeID] = ANIME_ID_REG.exec(page);
+    const [, animeCode] = ANIME_CODE_REG.exec(page);
+    url = `https://animepahe.com/play/${animeCode}`;
+
     if (!animeID) throw new Error(`Failed to find anime id for url: ${url}`);
 
     let pageData = await getPageData(animeID);
