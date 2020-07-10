@@ -11,6 +11,7 @@ const { CONFIG_DIR } = require('./config');
 
 const COOKIES_FILE = path.join(CONFIG_DIR, 'cookies.json');
 if (!fs.existsSync(COOKIES_FILE)) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true });
     fs.writeFileSync(COOKIES_FILE, '');
 }
 
