@@ -19,10 +19,15 @@ const {
     parseEpisodeGrammar,
     pickSearchResult,
     executeTasks,
-    getOtherQuality
+    getOtherQuality,
+    input
 } = require('../utils');
 
 const { dl: dlConfig } = require('../config').getConfig();
+const { 
+    getConfig,
+    writeConfig
+} = require('../config')
 
 const argv = yargs.
     options({
@@ -91,15 +96,65 @@ const argv = yargs.
             default: '',
             describe: 'regular expression to filter episodes based on their titles',
             type: 'string'
+        },
+        'c': {
+            alias: 'config',
+            default: false,
+            describe: 'command to allow you to edit config',
+            type: 'boolean'
         }
     })
     .help()
     .argv
 
+async function traverse_config(config, current, keyList = []) {
+    if (typeof current != 'object' || Array.isArray(current)) {
+        console.log(`Current Value: ${current}`);
+        var newValue = await input("New Value: ");
+
+        try {
+            newValue = eval(newValue);
+        } catch (error)
+        {}
+
+        if (newValue.constructor != current.constructor) {
+            var choice = await input(`${newValue} appears to be of an incorrect type, continue? [y/n] `);
+
+            if (choice[0].toUpperCase != 'y') {
+                return;
+            }
+        }
+
+        if (typeof newValue == 'string') {
+            newValue = `'${newValue}'`
+        }
+
+        eval(`config.${keyList.join('.')} = ${newValue}`)
+        writeConfig(config);
+    } else {
+        Object.keys(current).forEach(function(key, index) {
+            console.log(`${index + 1}: ${key}`);
+        });
+        var choice = parseInt(await input("Please select option [1]: "), 10);
+        while (choice < 1 || choice > Object.keys(current).length) {
+            choice = parseInt(await input(`Please pick a value between 1 and ${Object.keys(current).length}: `), 10);
+        }
+
+        keyList.push(Object.keys(current)[--choice])
+        traverse_config(config, current[Object.keys(current)[choice]], keyList)
+    }
+}
+
 async function main() {
     let animeurl = argv._[0];
     let writeStream;
     let filterTitle;
+
+    if (argv.c || argv.config) {
+        await traverse_config(getConfig(), getConfig());
+        return;
+    }
+
     if (!animeurl) {
         console.log('Provide anime url or name');
         return;
