@@ -16,7 +16,7 @@ const {
 const SITE_URL = 'https://4anime.to/';
 
 // Regular expression to extract source file of episode
-const SOURCE_REG = /file:\s+"([^"]+)/;
+const SOURCE_REG = /source src="([^"]+)/;
 
 const DEFAULT_HEADERS = getHeaders({ Referer: SITE_URL });
 
