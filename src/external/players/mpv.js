@@ -5,7 +5,7 @@ module.exports.play = async (url, referer) => {
     const args = [
         ...mpvConfig,
         `--http-header-fields=referer:${referer}`,
-        `${url}`
+        `${url}`,
     ];
     await executeCommand('mpv', args);
-}
+};

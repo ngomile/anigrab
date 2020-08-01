@@ -2,15 +2,8 @@
 
 const cheerio = require('cheerio');
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode,
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities,
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 // 4anime base url
 const SITE_URL = 'https://4anime.to/';
@@ -29,18 +22,18 @@ const DEFAULT_HEADERS = getHeaders({ Referer: SITE_URL });
 async function search(query) {
     let searchResults = [];
     query = query.toLowerCase().split(' ').join('+');
-    const searchResponse = await request.get(SITE_URL, { qs: { s: query }, headers: DEFAULT_HEADERS }, true);
+    const searchResponse = await request.get(
+        SITE_URL,
+        { qs: { s: query }, headers: DEFAULT_HEADERS },
+        true
+    );
     const $ = cheerio.load(searchResponse);
 
     $('#headerDIV_95').each(function (ind, elem) {
         const title = $(this).find('img+div').text();
         const url = $(this).find('a').attr('href');
         const poster = $(this).find('img').attr('src');
-        searchResults.push(new SearchResult(
-            title,
-            url,
-            poster
-        ));
+        searchResults.push(new SearchResult(title, url, poster));
     });
 
     return searchResults;
@@ -81,7 +74,10 @@ async function getQualities(url) {
     const [, source] = page.match(SOURCE_REG);
     const [, quality] = source.match(/(\d{3,4}p)/);
     qualities.set(quality, source);
-    qualities = formatQualities(qualities, { extractor: 'universal', referer: url });
+    qualities = formatQualities(qualities, {
+        extractor: 'universal',
+        referer: url,
+    });
     return { qualities };
 }
 
@@ -89,4 +85,4 @@ module.exports = {
     search,
     getAnime,
     getQualities,
-}
+};

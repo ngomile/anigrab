@@ -7,7 +7,7 @@ const {
     executeCommand,
     getHeaders,
     bypassCaptcha,
-    generateFormData
+    generateFormData,
 } = require('../utils');
 
 const DEFAULT_HEADERS = getHeaders();
@@ -15,7 +15,7 @@ const OPTIONS = {
     simple: false,
     resolveWithFullResponse: true,
     followAllRedirects: false,
-    followRedirect: false
+    followRedirect: false,
 };
 
 /**
@@ -38,16 +38,25 @@ module.exports.extract = async function ({ url }) {
         passToken = await bypassCaptcha(url);
         headers = getHeaders({ ...DEFAULT_HEADERS, Referer: url });
         cache.setKey('kwikHeaders', headers);
-        const { bypassURL, form } = await generateFormData(url, passToken, headers);
+        const { bypassURL, form } = await generateFormData(
+            url,
+            passToken,
+            headers
+        );
         response = await request.post(bypassURL, { headers, form, ...OPTIONS });
     } else {
         response = await request.get(url, { headers, ...OPTIONS });
     }
 
     const [, obsfucatedJS] = response.body.match(/(var _[\w]+=.*)/);
-    const deobsfucatedJS = await executeCommand('node', ['-e', `eval=console.log; ${obsfucatedJS}`]);
-    const [, postURL, _token] = deobsfucatedJS.match(/action="([^"]+).*?value="([^"]+)/);
+    const deobsfucatedJS = await executeCommand('node', [
+        '-e',
+        `eval=console.log; ${obsfucatedJS}`,
+    ]);
+    const [, postURL, _token] = deobsfucatedJS.match(
+        /action="([^"]+).*?value="([^"]+)/
+    );
     const form = { _token };
     response = await request.post(postURL, { headers, form, ...OPTIONS });
     return new ExtractedInfo(response.headers.location, url);
-}
+};

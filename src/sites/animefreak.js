@@ -3,20 +3,13 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Episode,
-    Anime
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Episode, Anime } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 /** The url to make search queries to */
 const SEARCH_URL = 'https://www.animefreak.tv/search/topSearch';
 /** The base url of an anime */
-const ANIME_URL = 'https://www.animefreak.tv/watch'
+const ANIME_URL = 'https://www.animefreak.tv/watch';
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www.animefreak.tv/' });
 
@@ -29,12 +22,12 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www.animefreak.tv/' });
 async function search(query) {
     let searchResults = [];
     const params = { q: query };
-    const { data } = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const { data } = await request.get(SEARCH_URL, {
+        qs: params,
+        headers: DEFAULT_HEADERS,
+    });
     for (const { name, seo_name } of data) {
-        searchResults.push(new SearchResult(
-            name,
-            `${ANIME_URL}/${seo_name}`
-        ));
+        searchResults.push(new SearchResult(name, `${ANIME_URL}/${seo_name}`));
     }
 
     return searchResults;
@@ -51,12 +44,17 @@ async function getAnime(url) {
     const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const [, title] = page.match(/Watch (.*?) Anime/);
     const $ = cheerio.load(page);
-    $('ul.check-list').last().find('a').each(function (ind, elem) {
-        episodes.push(new Episode(
-            `${title} ${$(this).text().trim()}`,
-            $(this).attr('href')
-        ));
-    });
+    $('ul.check-list')
+        .last()
+        .find('a')
+        .each(function (ind, elem) {
+            episodes.push(
+                new Episode(
+                    `${title} ${$(this).text().trim()}`,
+                    $(this).attr('href')
+                )
+            );
+        });
 
     return new Anime(title, episodes.reverse());
 }
@@ -80,12 +78,15 @@ async function getQualities(url) {
     } else {
         qualities.set('unknown', source);
     }
-    qualities = formatQualities(qualities, { extractor: 'universal', referer: url });
+    qualities = formatQualities(qualities, {
+        extractor: 'universal',
+        referer: url,
+    });
     return { qualities };
 }
 
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

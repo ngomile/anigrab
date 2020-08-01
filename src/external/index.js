@@ -1,13 +1,11 @@
 'use strict';
 
-const DOWNLOADERS = module.exports.DOWNLOADERS = [
-    'aria2c'
-];
+const DOWNLOADERS = (module.exports.DOWNLOADERS = ['aria2c']);
 
 /**
  * Dynamically loads the downloader that happens to be
  * in downloaders
- * 
+ *
  * @param {string} downloaderName
  */
 module.exports.downloadLoader = function (downloaderName) {
@@ -16,7 +14,7 @@ module.exports.downloadLoader = function (downloaderName) {
         return null;
     }
     return require(`./downloaders/${downloaderName}`);
-}
+};
 
 /**
  * Dynamically loads the player which happens to be mpv
@@ -26,4 +24,4 @@ module.exports.downloadLoader = function (downloaderName) {
  */
 module.exports.playerLoader = function (playerName) {
     return require(`./players/${playerName}`);
-}
+};

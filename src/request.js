@@ -19,7 +19,8 @@ const jar = rp.jar(new FileCookieStore(COOKIES_FILE));
 rp = rp.defaults({ jar, timeout: 30000, json: true });
 cloudscraper = cloudscraper.defaults({ jar: true, timeout: 30000, json: true });
 
-const delay = numRetry => (Math.pow(2, numRetry) * 1000) + Math.floor(Math.random() * 1000);
+const delay = numRetry =>
+    Math.pow(2, numRetry) * 1000 + Math.floor(Math.random() * 1000);
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, options, cf = false) {
@@ -36,7 +37,7 @@ async function request(url, options, cf = false) {
             }
             throw error;
         }
-    }
+    };
 
     try {
         return await httpRequest(url, options);
@@ -60,5 +61,5 @@ module.exports = {
     get,
     post,
     delay,
-    timeout
-}
+    timeout,
+};

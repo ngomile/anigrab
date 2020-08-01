@@ -5,15 +5,8 @@ const crypto = require('crypto-js');
 const aes = require('crypto-js/aes');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 /** Base site url */
 const SITE_URL = 'https://twist.moe';
@@ -34,10 +27,11 @@ const KEY = 'LXgIVP&PorO68Rq7dTx8N^lP!Fa5sGJ^*XK';
 
 const DEFAULT_HEADERS = getHeaders({
     Referer: SITE_URL,
-    'x-access-token': '1rj2vRtegS8Y60B3w3qNZm5T2Q0TN2NR'
+    'x-access-token': '1rj2vRtegS8Y60B3w3qNZm5T2Q0TN2NR',
 });
 
-const decrypt = source => aes.decrypt(source, KEY).toString(crypto.enc.Utf8).trim();
+const decrypt = source =>
+    aes.decrypt(source, KEY).toString(crypto.enc.Utf8).trim();
 
 /**
  * Executes search query for twist
@@ -53,10 +47,15 @@ async function search(query) {
     const options = {
         scorer: fuzz.partial_ratio,
         processor: choice => choice.title,
-        cutoff: 85
+        cutoff: 85,
     };
 
-    const results = await fuzz.extractAsPromised(query, searchResponse, options);
+    const results = await fuzz.extractAsPromised(
+        query,
+        searchResponse,
+        options
+    );
+    // prettier-ignore
     for (const [{ title, slug: { slug } }] of results) {
         searchResults.push(new SearchResult(
             title,
@@ -87,10 +86,9 @@ async function getAnime(url) {
         if (title) [, title] = title;
         else title = decryptedSourceUrl.split(/\b\/\b/)[3].split('.')[0];
 
-        episodes.push(new Episode(
-            `${title} Episode ${number}`,
-            decryptedSourceUrl
-        ));
+        episodes.push(
+            new Episode(`${title} Episode ${number}`, decryptedSourceUrl)
+        );
     }
 
     return new Anime(title, episodes);
@@ -112,13 +110,13 @@ async function getQualities(url) {
     return {
         qualities: formatQualities(qualities, {
             extractor: 'universal',
-            referer: url
-        })
+            referer: url,
+        }),
     };
 }
 
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

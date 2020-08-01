@@ -17,7 +17,9 @@ const SOURCE_REG = /source src="([^"]+)/;
  */
 module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
-    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, {
+        headers: getHeaders({ Referer: referer }),
+    });
     const [, src] = SOURCE_REG.exec(page);
     // trollvid doesn't give the actual url of the video immediately
     // doing this gets the actual url
@@ -26,8 +28,8 @@ module.exports.extract = async function ({ url, referer = '' }) {
         followAllRedirects: false,
         followRedirect: false,
         resolveWithFullResponse: true,
-        simple: false
+        simple: false,
     });
     const streamURL = response.headers.location;
     return new ExtractedInfo(streamURL, src);
-}
+};

@@ -3,16 +3,8 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    extractQualities,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, extractQualities, formatQualities } = require('../utils');
 
 const config = require('../config').getConfig().siteconfig.animekisa;
 
@@ -25,15 +17,15 @@ const SITE_URL = 'https://animekisa.tv';
 const SOURCES_REG = new Map([
     ['gcloud', /var Fembed = "([^"]+)/],
     ['vidstream', /var VidStreaming = "([^"]+)/],
-    ['mp4upload', /var MP4Upload = "([^"]+)/]
+    ['mp4upload', /var MP4Upload = "([^"]+)/],
 ]);
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animekisa.tv' });
 
 /**
  * Collects the search results from animekisa
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
 function collectSearchResults($) {
@@ -52,16 +44,20 @@ function collectSearchResults($) {
 
 /**
  * Executes search query on animekisa
- * 
- * @param {string} query 
+ *
+ * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
     const params = { q: query };
-    const searchPage = await request.get(SEARCH_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    }, true);
+    const searchPage = await request.get(
+        SEARCH_URL,
+        {
+            headers: DEFAULT_HEADERS,
+            qs: params,
+        },
+        true
+    );
     const $ = cheerio.load(searchPage);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -69,9 +65,9 @@ async function search(query) {
 
 /**
  * Collects the episodes of the anime
- * 
- * @param {CheerioStatic} $ 
- * @param {string} title 
+ *
+ * @param {CheerioStatic} $
+ * @param {string} title
  */
 function collectEpisodes($, title) {
     let episodes = [];
@@ -89,8 +85,8 @@ function collectEpisodes($, title) {
 
 /**
  * Extracts the title and the episodes of the anime from animekisa
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
@@ -117,12 +113,15 @@ async function getQualities(url) {
     let { qualities, extractor } = await extractQualities(info);
     for (const fallbackServer of fallbackServers) {
         if (qualities.size) break;
-        ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
+        ({ qualities, extractor } = await extractQualities({
+            ...info,
+            server: fallbackServer,
+        }));
     }
 
     qualities = formatQualities(qualities, {
         extractor,
-        referer: url
+        referer: url,
     });
 
     return { qualities };
@@ -131,5 +130,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

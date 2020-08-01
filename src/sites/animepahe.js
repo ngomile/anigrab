@@ -1,16 +1,12 @@
 'use strict';
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
+const { SearchResult, Anime, Episode } = require('./common');
 const {
     getHeaders,
     formatQualities,
     range,
-    executeTasks
+    executeTasks,
 } = require('../utils');
 
 const config = require('../config').getConfig().siteconfig.animepahe;
@@ -38,12 +34,12 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animepahe.com/' });
 
 const versionToSub = new Map([
     ['subbed', 'jpn'],
-    ['dubbed', 'eng']
+    ['dubbed', 'eng'],
 ]);
 
 /**
  * Handles correctly extracting search result from animepahe
- * 
+ *
  * @param {object} obj
  * @param {string} obj.title
  * @param {string} obj.slug
@@ -57,36 +53,49 @@ function handleSearchResult({ title, slug, poster }) {
 
 /**
  * Executes a search query on animepahe
- * 
+ *
  * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
     const searchParams = { l: 8, m: 'search', q: query };
-    const { data } = await request.get(API_URL, { qs: searchParams, headers: DEFAULT_HEADERS }, true);
+    const { data } = await request.get(
+        API_URL,
+        { qs: searchParams, headers: DEFAULT_HEADERS },
+        true
+    );
     // Search results are stored in the data field
     return data ? data.map(handleSearchResult) : [];
 }
 
 /**
  * Gets the episode data for a given page
- * 
- * @param {string|number} animeID 
- * @param {number} page 
+ *
+ * @param {string|number} animeID
+ * @param {number} page
  * @returns {Promise<any>}
  */
 async function getPageData(animeID, page = 1) {
-    const params = { m: 'release', id: animeID, sort: 'episode_asc', page: page };
-    const response = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
+    const params = {
+        m: 'release',
+        id: animeID,
+        sort: 'episode_asc',
+        page: page,
+    };
+    const response = await request.get(
+        API_URL,
+        { qs: params, headers: DEFAULT_HEADERS },
+        true
+    );
     return response;
 }
 
 /**
  * Extracts the episodes from anime data
- * 
- * @param {string} title 
- * @param {string} url 
- * @param {object} animeData 
+ *
+ * @param {string} title
+ * @param {string} url
+ * @param {object} animeData
  * @returns {Episode[]}
  */
 function getEpisodes(title, url, animeData) {
@@ -120,13 +129,17 @@ async function getAnime(url) {
 
     let pageData = await getPageData(animeID);
     let episodes = getEpisodes(title, url, pageData);
-    let startPage = pageData.current_page, lastPage = pageData.last_page;
+    let startPage = pageData.current_page,
+        lastPage = pageData.last_page;
 
     // In case there is more than one page extract the rest of the episodes
     if (startPage < lastPage) {
         startPage++, lastPage++;
         // Speed up collecting of other episodes
-        let args = range(startPage, lastPage).map(pageNum => [animeID, pageNum]);
+        let args = range(startPage, lastPage).map(pageNum => [
+            animeID,
+            pageNum,
+        ]);
         const pageDataList = await executeTasks(getPageData, ...args);
         for (pageData of pageDataList) {
             episodes.push(...getEpisodes(title, url, pageData));
@@ -139,12 +152,14 @@ async function getAnime(url) {
 
 /**
  * Finds the servers that are hosting the episode
- * 
- * @param {string} page 
+ *
+ * @param {string} page
  * @returns {string[]}
  */
 function getServers(page) {
-    let servers = [], match, server;
+    let servers = [],
+        match,
+        server;
     do {
         match = SERVER_REG.exec(page);
         if (match) {
@@ -155,22 +170,26 @@ function getServers(page) {
     return servers;
 }
 
-
 /**
  * Extracts the quality mapping to it's url from the api
- * 
- * @param {string} server 
- * @param {string|number} episodeID 
- * @param {string} session 
+ *
+ * @param {string} server
+ * @param {string|number} episodeID
+ * @param {string} session
  * @returns {Promise<Map<string, string>>}
  */
 async function getEpisodeQualities(server, episodeID, session) {
     const version = versionToSub.get(config.version);
     let qualities = new Map();
     const params = { id: episodeID, m: 'embed', p: server, session: session };
-    const { data = '' } = await request.get(API_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
+    const { data = '' } = await request.get(
+        API_URL,
+        { qs: params, headers: DEFAULT_HEADERS },
+        true
+    );
 
-    if (data === '') throw new Error(`Incorrect API usage with parameters: ${params}`);
+    if (data === '')
+        throw new Error(`Incorrect API usage with parameters: ${params}`);
     const providerInfo = Object.values(data);
 
     for (const info of providerInfo) {
@@ -190,18 +209,23 @@ async function getEpisodeQualities(server, episodeID, session) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const episodePage = await request.get(url, { headers: DEFAULT_HEADERS }, true);
+    const episodePage = await request.get(
+        url,
+        { headers: DEFAULT_HEADERS },
+        true
+    );
     const servers = getServers(episodePage);
     const [, episodeID, session] = ID_SESSION_REG.exec(episodePage);
 
-    if (!servers) throw new Error(`No servers found for ${title} with url ${url}`);
+    if (!servers)
+        throw new Error(`No servers found for ${title} with url ${url}`);
     // We only get the necessary qualities and urls from one server while ignoring unsupported ones
     for (const server of servers) {
         if (!SUPPORTED_SERVERS.includes(server)) continue;
         qualities = await getEpisodeQualities(server, episodeID, session);
         qualities = formatQualities(qualities, {
             extractor: server,
-            referer: url
+            referer: url,
         });
         break;
     }
@@ -212,5 +236,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

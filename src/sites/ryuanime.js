@@ -3,15 +3,8 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 const config = require('../config').getConfig().siteconfig.ryuanime;
 
@@ -25,8 +18,8 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www4.ryuanime.com/' });
 
 /**
  * Collects search results of the anime
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
 function collectSearchResults($) {
@@ -42,13 +35,16 @@ function collectSearchResults($) {
 
 /**
  * Executes search query on ryuanime
- * 
- * @param {string} query 
+ *
+ * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
     const params = { term: query };
-    const searchPage = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS });
+    const searchPage = await request.get(SEARCH_URL, {
+        qs: params,
+        headers: DEFAULT_HEADERS,
+    });
     const $ = cheerio.load(searchPage);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -56,14 +52,14 @@ async function search(query) {
 
 /**
  * Collects the episodes of the anime
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {Episode[]}
  */
 function collectEpisodes($) {
     const versionsMap = new Map([
         ['subbed', 'Sub'],
-        ['dubbed', 'Dub']
+        ['dubbed', 'Dub'],
     ]);
     const version = versionsMap.get(config.version);
     let episodes = [];
@@ -81,8 +77,8 @@ function collectEpisodes($) {
 
 /**
  * Extracts the title and episodes from ryuanime
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
@@ -108,8 +104,16 @@ async function getQualities(url) {
         for (const { id, host, type } of sources) {
             if (host === server && type === version) {
                 extractor = host;
-                if (host === 'trollvid') qualities.set('unknown', `https://trollvid.net/embed/${id}`);
-                else if (host === 'mp4upload') qualities.set('unknown', `https://www.mp4upload.com/embed-${id}.html`);
+                if (host === 'trollvid')
+                    qualities.set(
+                        'unknown',
+                        `https://trollvid.net/embed/${id}`
+                    );
+                else if (host === 'mp4upload')
+                    qualities.set(
+                        'unknown',
+                        `https://www.mp4upload.com/embed-${id}.html`
+                    );
             }
         }
         return { qualities, extractor };
@@ -122,12 +126,16 @@ async function getQualities(url) {
 
     for (const fallbackServer of fallbackServers) {
         if (qualities.size) break;
-        ({ extractor, qualities } = handleSources(sources, version, fallbackServer));
+        ({ extractor, qualities } = handleSources(
+            sources,
+            version,
+            fallbackServer
+        ));
     }
 
     qualities = formatQualities(qualities, {
         extractor,
-        referer: url
+        referer: url,
     });
 
     return { qualities };
@@ -136,5 +144,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

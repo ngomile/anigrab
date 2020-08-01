@@ -7,17 +7,10 @@ const { promisify } = require('util');
 const cheerio = require('cheerio');
 const solveCaptcha = require('hcaptcha-solver');
 
-const {
-    delay,
-    timeout,
-    ...request
-} = require('./request');
+const { delay, timeout, ...request } = require('./request');
 
 // Is there a better way to get class information without having to require?
-const {
-    Episode,
-    SearchResult
-} = require('./sites/common');
+const { Episode, SearchResult } = require('./sites/common');
 const { USER_AGENTS } = require('./user_agents');
 const Cache = require('./cache');
 
@@ -25,28 +18,31 @@ const cache = new Cache('store');
 
 /**
  * Creates an object of headers
- * 
- * @param {object} headers 
+ *
+ * @param {object} headers
  * @returns {object}
  */
 function getHeaders(headers = {}) {
     return {
-        'User-Agent': USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
-        ...headers
-    }
+        'User-Agent':
+            USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+        ...headers,
+    };
 }
 
 /**
  * Extracts the quality and the associated url from ksplayer
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @param {string} referer
- * @returns {Promise<Map<string, string>>} 
+ * @returns {Promise<Map<string, string>>}
  */
 async function extractKsplayer(url, referer = '') {
     referer = referer || url;
     let qualities = new Map();
-    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, {
+        headers: getHeaders({ Referer: referer }),
+    });
 
     const $ = cheerio.load(page);
     $('.download_links a').each(function (ind, element) {
@@ -69,7 +65,9 @@ async function extractGcloud(url) {
     let qualities = new Map();
     const [, id] = url.match(/v\/(.*)/);
     url = `https://gcloud.live/api/source/${id}`;
-    const { data } = await request.post(url, { headers: getHeaders({ Referer: url }) });
+    const { data } = await request.post(url, {
+        headers: getHeaders({ Referer: url }),
+    });
 
     // gcloud may respond with a string error message but when successful
     // responds with array
@@ -83,8 +81,8 @@ async function extractGcloud(url) {
 
 /**
  * Extracts the quality and the associated url from vidstream
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @param {string} referer
  * @returns {Promise<Map<string, string>>}
  */
@@ -95,21 +93,24 @@ async function extractVidstream(url, referer = '') {
     }
 
     referer = referer || url;
-    const headers = getHeaders({ 'Referer': referer });
+    const headers = getHeaders({ Referer: referer });
     let qualities = new Map();
     page = await request.get(url, { headers: headers }, true);
 
     const $ = cheerio.load(page);
-    $('.mirror_link').first().find('a').each(function (ind, element) {
-        const url = $(this).attr('href');
-        let quality = url.match(/(\d{3,4}P)/);
-        // If quality regex worked use destructuring to capture the matching group
-        // from quality otherwise quality is unknown
-        if (quality) [, quality] = quality;
-        else quality = 'unknown';
-        quality = quality.toLowerCase();
-        qualities.set(quality, url);
-    });
+    $('.mirror_link')
+        .first()
+        .find('a')
+        .each(function (ind, element) {
+            const url = $(this).attr('href');
+            let quality = url.match(/(\d{3,4}P)/);
+            // If quality regex worked use destructuring to capture the matching group
+            // from quality otherwise quality is unknown
+            if (quality) [, quality] = quality;
+            else quality = 'unknown';
+            quality = quality.toLowerCase();
+            qualities.set(quality, url);
+        });
 
     return qualities;
 }
@@ -118,16 +119,16 @@ async function extractVidstream(url, referer = '') {
  * Given a mapping of qualities to associated urls
  * modifies the mapping as to give more information
  * such as the extractor and referer to use from extra
- * 
- * @param {Map<string, string>} qualities 
- * @param {object} extra 
+ *
+ * @param {Map<string, string>} qualities
+ * @param {object} extra
  * @returns {Map<string, object>}
  */
 function formatQualities(qualities, extra) {
     for (const quality of qualities.keys()) {
         qualities.set(quality, {
             ...extra,
-            url: qualities.get(quality)
+            url: qualities.get(quality),
         });
     }
     return qualities;
@@ -138,8 +139,8 @@ function formatQualities(qualities, extra) {
  * 1,2,9:90 values from 1 to 2 to 9 through 90 will
  * be extracted from the list of episodes at those given
  * indexes
- * 
- * @param {Episode[]} episodes 
+ *
+ * @param {Episode[]} episodes
  * @param {string} grammar
  * @returns {Episode[]}
  */
@@ -165,13 +166,15 @@ function parseEpisodeGrammar(episodes, grammar = '') {
 
 /**
  * Asks the user for input and returns their anser
- * 
- * @param {string} prompt 
+ *
+ * @param {string} prompt
  * @returns {string}
  */
 async function input(prompt) {
     // Taken from https://gist.github.com/tinovyatkin/4316e302d8419186fe3c6af3f26badff
-    readline.Interface.prototype.question[promisify.custom] = function (prompt) {
+    readline.Interface.prototype.question[promisify.custom] = function (
+        prompt
+    ) {
         return new Promise(resolve =>
             readline.Interface.prototype.question.call(this, prompt, resolve)
         );
@@ -193,9 +196,9 @@ async function input(prompt) {
 
 /**
  * Creates a list of numbers from start to end
- * 
- * @param {number} start 
- * @param {number} end 
+ *
+ * @param {number} start
+ * @param {number} end
  */
 function range(start, end = 0) {
     let numbers = [];
@@ -211,9 +214,9 @@ function range(start, end = 0) {
 
 /**
  * Executes the function with the arguments simultaneously
- * 
- * @param {function} func 
- * @param  {...any} args 
+ *
+ * @param {function} func
+ * @param  {...any} args
  */
 async function executeTasks(func, ...args) {
     let results = [];
@@ -231,7 +234,7 @@ async function executeTasks(func, ...args) {
 /**
  * Given a list of search results, returns the url of the
  * user selected search result
- * 
+ *
  * @param {SearchResult[]} searchResults
  * @returns {string}
  */
@@ -243,7 +246,9 @@ async function pickSearchResult(searchResults) {
     let choice = await input('Please select an anime [1]: ');
     choice = parseInt(choice, 10);
     while (choice < 1 || choice > searchResults.length) {
-        choice = await input(`Please pick a value between 1 and ${searchResults.length}: `);
+        choice = await input(
+            `Please pick a value between 1 and ${searchResults.length}: `
+        );
     }
     return searchResults[--choice].url;
 }
@@ -252,7 +257,7 @@ async function pickSearchResult(searchResults) {
  * Given a mapping of qualities to an object with extractor, url
  * and referer properties. The function picks the highest quality
  * possible and returns the object that matched to the quality
- * 
+ *
  * @param {Map<string, any>} qualities
  * @param {string} fallbackQualities
  * @returns {any}
@@ -286,9 +291,9 @@ function getOtherQuality(qualities, fallbackQualities = '') {
 
 /**
  * Executes an external command
- * 
- * @param {string} cmd 
- * @param {string[]} args 
+ *
+ * @param {string} cmd
+ * @param {string[]} args
  */
 async function executeCommand(cmd, args = []) {
     // Taken from https://stackoverflow.com/questions/58570325/how-to-turn-child-process-spawns-promise-syntax-to-async-await-syntax
@@ -315,7 +320,8 @@ async function executeCommand(cmd, args = []) {
         child.on('close', resolve);
     });
 
-    if (exitCode) throw new Error(`subprocess error exit ${exitCode}, ${error}`);
+    if (exitCode)
+        throw new Error(`subprocess error exit ${exitCode}, ${error}`);
 
     return output.join('');
 }
@@ -324,7 +330,7 @@ async function executeCommand(cmd, args = []) {
  * Finds the server that is hosting the episode by matching it to the
  * regular expressions in sourcesReg and returns the qualities available
  * if any
- * 
+ *
  * @param {object} obj
  * @param {string} obj.page
  * @param {string} obj.server
@@ -334,7 +340,7 @@ async function executeCommand(cmd, args = []) {
 async function extractQualities({ page, server, url, sourcesReg }) {
     let qualities = new Map();
     let extractor = '';
-    let source = ''
+    let source = '';
     let match = page.match(sourcesReg.get(server));
     if (match) {
         if (server === 'vidstream') {
@@ -358,7 +364,7 @@ const OPTIONS = {
     simple: false,
     resolveWithFullResponse: true,
     followAllRedirects: false,
-    followRedirect: false
+    followRedirect: false,
 };
 
 /**
@@ -380,7 +386,6 @@ async function bypassCaptcha(url) {
                 console.error('Failed to generate pass token, trying again');
             }
         }
-
     }
     return passToken;
 }
@@ -409,9 +414,9 @@ async function generateFormData(url, token, headers = {}) {
     });
 
     Object.assign(form, {
-        "id": $('strong').first().text(),
-        "g-recaptcha-response": token,
-        "h-captcha-response": token
+        id: $('strong').first().text(),
+        'g-recaptcha-response': token,
+        'h-captcha-response': token,
     });
 
     return { bypassURL, form };
@@ -433,5 +438,5 @@ module.exports = {
     getOtherQuality,
     executeCommand,
     extractQualities,
-    extractGcloud
-}
+    extractGcloud,
+};

@@ -6,9 +6,9 @@
  */
 class SearchResult {
     /**
-     * @param {string} title 
-     * @param {string} url 
-     * @param {string} poster 
+     * @param {string} title
+     * @param {string} url
+     * @param {string} poster
      */
     constructor(title, url, poster = '') {
         this.title = title;
@@ -27,8 +27,8 @@ class SearchResult {
  */
 class Episode {
     /**
-     * @param {string} title 
-     * @param {string} url 
+     * @param {string} title
+     * @param {string} url
      */
     constructor(title, url) {
         this.title = title;
@@ -46,8 +46,8 @@ class Episode {
  */
 class Anime {
     /**
-     * @param {string} title 
-     * @param {Episode[]} episodes 
+     * @param {string} title
+     * @param {Episode[]} episodes
      */
     constructor(title, episodes) {
         this.title = title;
@@ -62,5 +62,5 @@ class Anime {
 module.exports = {
     SearchResult,
     Anime,
-    Episode
-}
+    Episode,
+};

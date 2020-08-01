@@ -1,15 +1,8 @@
 'use strict';
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 const config = require('../config').getConfig().siteconfig.animeflix;
 
@@ -24,7 +17,7 @@ const EPISODE_SCHEMA_URL = 'https://animeflix.io/api/anime-schema';
 /** The url to get id of episode from animeflix */
 const EPISODE_URL = 'https://animeflix.io/api/episode';
 /** The url to get download links for an episode from animeflix */
-const VIDEO_LINKS_URL = 'https://animeflix.io/api/videos'
+const VIDEO_LINKS_URL = 'https://animeflix.io/api/videos';
 /** The url to retrieve metadata of an anime from animeflix */
 const META_URL = 'https://animeflix.io/api/anime/detail';
 
@@ -39,14 +32,16 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animeflix.io' });
 async function search(query) {
     let searchResults = [];
     const params = { q: query };
-    const { data } = await request.get(SEARCH_URL, { qs: params, headers: DEFAULT_HEADERS }, true);
+    const { data } = await request.get(
+        SEARCH_URL,
+        { qs: params, headers: DEFAULT_HEADERS },
+        true
+    );
 
     for (const { title, slug, cover_photo } of data) {
-        searchResults.push(new SearchResult(
-            title,
-            `${ANIME_URL}/${slug}`,
-            cover_photo
-        ));
+        searchResults.push(
+            new SearchResult(title, `${ANIME_URL}/${slug}`, cover_photo)
+        );
     }
 
     return searchResults;
@@ -67,20 +62,21 @@ async function getAnime(url) {
     // both concurrently
     const [{ title }, episodeData] = await Promise.all([
         request.get(META_URL, { qs: { slug }, headers }, true),
-        request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers }, true)
+        request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers }, true),
     ]);
 
     if (episodeData['@type'] === 'Movie') {
-        episodes.push(new Episode(
-            `${title}`,
-            `${episodeData.potentialAction.target}`
-        ));
+        episodes.push(
+            new Episode(`${title}`, `${episodeData.potentialAction.target}`)
+        );
     } else {
         for (const { episodeNumber, url } of episodeData.episodes) {
-            episodes.push(new Episode(
-                `${title} Episode ${episodeNumber}`,
-                `${SITE_URL}${url}`.replace(/\-(dub|sub)$/, '/$1')
-            ));
+            episodes.push(
+                new Episode(
+                    `${title} Episode ${episodeNumber}`,
+                    `${SITE_URL}${url}`.replace(/\-(dub|sub)$/, '/$1')
+                )
+            );
         }
     }
 
@@ -103,12 +99,18 @@ async function getQualities(url) {
 
     const {
         data: {
-            current: {
-                id: episode_id
-            }
-        }
-    } = await request.get(EPISODE_URL, { qs: { episode_num, slug }, headers }, true);
-    const downloadLinks = await request.get(VIDEO_LINKS_URL, { qs: { episode_id }, headers }, true);
+            current: { id: episode_id },
+        },
+    } = await request.get(
+        EPISODE_URL,
+        { qs: { episode_num, slug }, headers },
+        true
+    );
+    const downloadLinks = await request.get(
+        VIDEO_LINKS_URL,
+        { qs: { episode_id }, headers },
+        true
+    );
 
     for (const { provider, file, lang, resolution, type } of downloadLinks) {
         if (version !== lang || type !== 'mp4') continue;
@@ -116,9 +118,9 @@ async function getQualities(url) {
         if (server === provider) {
             qualities.set(resolution, file);
         } else if (fallbackServers.includes(provider)) {
-            if (fallbackQualities.has(provider)) fallbackQualities.get(provider).set(resolution, file);
+            if (fallbackQualities.has(provider))
+                fallbackQualities.get(provider).set(resolution, file);
             else fallbackQualities.set(provider, new Map([[resolution, file]]));
-
         }
     }
 
@@ -133,7 +135,7 @@ async function getQualities(url) {
 
     qualities = formatQualities(qualities, {
         extractor: 'universal',
-        referer: url
+        referer: url,
     });
     return { qualities };
 }
@@ -141,5 +143,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

@@ -3,15 +3,8 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities } = require('../utils');
 
 /** The url to make search queries to */
 const SEARCH_URL = 'https://hentaihaven.xxx/';
@@ -27,12 +20,14 @@ const FORM_VALS_REG = /action:'(.*)',a:'(.*)',b:'(.*)'/;
 /** Regular expression to extract json of source */
 const SOURCES_REG = /(\{.*\})/;
 
-const DEFAULT_HEADERS = getHeaders({ Referer: 'https://hentaihaven.xxx/hentai/' });
+const DEFAULT_HEADERS = getHeaders({
+    Referer: 'https://hentaihaven.xxx/hentai/',
+});
 
 /**
  * Collects search results
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
 function collectSearchResults($) {
@@ -41,7 +36,7 @@ function collectSearchResults($) {
         const title = $(this).find('h3 a').first().text();
         const url = $(this).find('h3 a').first().attr('href');
         const poster = $(this).find('img').attr('src');
-        const searchResult = new SearchResult(title, url, poster)
+        const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
     return searchResults;
@@ -49,15 +44,15 @@ function collectSearchResults($) {
 
 /**
  * Executes search query for hentaihaven
- * 
- * @param {string} query 
+ *
+ * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
     const params = { s: query, post_type: 'wp-manga' };
     const searchResponse = await request.get(SEARCH_URL, {
         headers: DEFAULT_HEADERS,
-        qs: params
+        qs: params,
     });
     const $ = cheerio.load(searchResponse);
     let searchResults = collectSearchResults($);
@@ -66,9 +61,9 @@ async function search(query) {
 
 /**
  * Collects the episodes of the anime
- * 
- * @param {CheerioStatic} $ 
- * @param {string} title 
+ *
+ * @param {CheerioStatic} $
+ * @param {string} title
  */
 function collectEpisodes($, title) {
     let episodes = [];
@@ -108,14 +103,16 @@ async function getQualities(url) {
     const page = await request.get(url, { headers: DEFAULT_HEADERS });
     const [, playerSrc] = page.match(PLAYER_SRC_REG);
 
-    const playerPage = await request.get(playerSrc, { headers: DEFAULT_HEADERS });
+    const playerPage = await request.get(playerSrc, {
+        headers: DEFAULT_HEADERS,
+    });
     let [, videoData] = playerPage.match(VIDEO_DATA_REG);
     const [, action, a, b] = videoData.match(FORM_VALS_REG);
     const formData = { action, a, b };
 
     let sourceData = await request.post(API_URL, {
         headers: getHeaders({ Referer: playerSrc }),
-        formData: formData
+        formData: formData,
     });
 
     const { sources } = JSON.parse(sourceData.match(SOURCES_REG)[1]);
@@ -125,7 +122,7 @@ async function getQualities(url) {
 
     qualities = formatQualities(qualities, {
         extractor: 'universal',
-        referer: API_URL
+        referer: API_URL,
     });
 
     return { qualities };
@@ -134,5 +131,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

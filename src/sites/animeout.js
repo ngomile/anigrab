@@ -3,16 +3,9 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
+const { SearchResult, Anime, Episode } = require('./common');
 
-const {
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { getHeaders, formatQualities } = require('../utils');
 
 /** The url to perform search queries on  */
 const SEARCH_URL = 'https://www.animeout.xyz/';
@@ -28,7 +21,7 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animeout.xyz/' });
 
 /**
  * Collects the search results from animeout
- * 
+ *
  * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
@@ -47,7 +40,7 @@ function collectSearchResults($) {
 
 /**
  * Executes a search query on animeout
- * 
+ *
  * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
@@ -55,7 +48,7 @@ async function search(query) {
     const params = { s: query, post_type: 'post' };
     const searchText = await request.get(SEARCH_URL, {
         qs: params,
-        headers: DEFAULT_HEADERS
+        headers: DEFAULT_HEADERS,
     });
     const $ = cheerio.load(searchText);
     let searchResults = collectSearchResults($);
@@ -64,9 +57,9 @@ async function search(query) {
 
 /**
  * Collects episodes from animeout
- * 
+ *
  * @param {CheerioStatic} $
- * @returns {Episode[]} 
+ * @returns {Episode[]}
  */
 function collectEpisodes($) {
     let episodes = [];
@@ -84,8 +77,8 @@ function collectEpisodes($) {
 
 /**
  * Extracts the title and episodes from animeout
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
@@ -121,7 +114,7 @@ async function getQualities(url) {
     qualities.set(quality, realURL);
     qualities = formatQualities(qualities, {
         extractor: 'universal',
-        referer: realURL
+        referer: realURL,
     });
 
     return { qualities };
@@ -130,5 +123,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
+    getQualities,
 };

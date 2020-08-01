@@ -18,7 +18,9 @@ const SOURCE_REG = /source src="([^"]+)/;
  */
 module.exports.extract = async function ({ url, referer = '' }) {
     referer = referer || url;
-    const page = await request.get(url, { headers: getHeaders({ Referer: referer }) });
+    const page = await request.get(url, {
+        headers: getHeaders({ Referer: referer }),
+    });
     const [, streamURL] = page.match(/file:\s*'([^']+)/);
     return new ExtractedInfo(streamURL, url);
-}
+};

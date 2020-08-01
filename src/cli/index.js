@@ -5,96 +5,96 @@ const fs = require('fs');
 
 const yargs = require('yargs');
 
-const {
-    downloadLoader,
-    DOWNLOADERS,
-    playerLoader
-} = require('../external/');
-const {
-    siteLoader,
-    SITES
-} = require('../sites/');
+const { downloadLoader, DOWNLOADERS, playerLoader } = require('../external/');
+const { siteLoader, SITES } = require('../sites/');
 const { extractorLoader } = require('../extractors/');
 const {
     parseEpisodeGrammar,
     pickSearchResult,
     executeTasks,
-    getOtherQuality
+    getOtherQuality,
 } = require('../utils');
 
 const { dl: dlConfig } = require('../config').getConfig();
 
-const argv = yargs.
-    options({
-        'q': {
+const argv = yargs
+    .options({
+        q: {
             alias: 'quality',
             default: dlConfig.quality,
-            describe: 'quality of the video, can be 720p or 1080p or any other resolution',
-            type: 'string'
+            describe:
+                'quality of the video, can be 720p or 1080p or any other resolution',
+            type: 'string',
         },
-        'e': {
+        e: {
             alias: 'episodes',
             default: '',
             describe: 'episodes to get for example "1, 2, 5:10"',
-            type: 'string'
+            type: 'string',
         },
-        'w': {
+        w: {
             alias: 'write',
             default: false,
-            describe: 'writes stream urls by appending them to a file named anime.txt in current working directory',
-            type: 'boolean'
+            describe:
+                'writes stream urls by appending them to a file named anime.txt in current working directory',
+            type: 'boolean',
         },
-        's': {
+        s: {
             alias: 'site',
             default: dlConfig.site,
-            describe: `the site to get the anime from, choose ${SITES.join(', ')}`,
-            type: 'string'
+            describe: `the site to get the anime from, choose ${SITES.join(
+                ', '
+            )}`,
+            type: 'string',
         },
-        'u': {
+        u: {
             alias: 'url',
             deault: false,
             describe: 'prints stream url of episode',
-            type: 'boolean'
+            type: 'boolean',
         },
-        'fb': {
+        fb: {
             alias: 'fallback',
             default: '',
-            describe: 'comma separated string of qualities to choose if quality asked for is not found e.g 360p, 480p',
-            type: 'string'
+            describe:
+                'comma separated string of qualities to choose if quality asked for is not found e.g 360p, 480p',
+            type: 'string',
         },
-        'd': {
+        d: {
             alias: 'directory',
             default: dlConfig.directory,
             describe: 'the directory to download the file to',
-            type: 'string'
+            type: 'string',
         },
-        'p': {
+        p: {
             alias: 'play',
             default: false,
             describe: 'play the episode using mpv',
-            type: 'boolean'
+            type: 'boolean',
         },
-        'sk': {
+        sk: {
             alias: 'skip',
             default: false,
             describe: 'skips downloading the file',
-            type: 'boolean'
+            type: 'boolean',
         },
-        'xd': {
+        xd: {
             alias: 'external-downloader',
             default: 'aria2c',
-            describe: `the external downloader to use to download the file, choose ${DOWNLOADERS.join(', ')}`,
-            type: 'string'
+            describe: `the external downloader to use to download the file, choose ${DOWNLOADERS.join(
+                ', '
+            )}`,
+            type: 'string',
         },
-        'ft': {
+        ft: {
             alias: 'filter-title',
             default: '',
-            describe: 'regular expression to filter episodes based on their titles',
-            type: 'string'
-        }
+            describe:
+                'regular expression to filter episodes based on their titles',
+            type: 'string',
+        },
     })
-    .help()
-    .argv
+    .help().argv;
 
 async function main() {
     let animeurl = argv._[0];
@@ -126,23 +126,31 @@ async function main() {
     // set to skip downloading if user just wants to see urls or write to file
     if (argv.write || argv.url || argv.play) argv.skip = true;
 
-    if (argv.write) writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
+    if (argv.write)
+        writeStream = fs.createWriteStream('anime.txt', { flags: 'a' });
 
     console.log(`Extracting ${animeurl}`);
     const anime = await site.getAnime(animeurl);
     // Sites like animeout list all episodes and there qualities on the same page
     // if title filter is specified, filter the episodes first then proceed to
     // parse episode grammar to avoid breaking the episodes returned
-    const episodes = parseEpisodeGrammar(anime.episodes.filter(episode => {
-        return filterTitle && !filterTitle.test(episode.title) ? false : true;
-    }), argv.episodes);
+    const episodes = parseEpisodeGrammar(
+        anime.episodes.filter(episode => {
+            return filterTitle && !filterTitle.test(episode.title)
+                ? false
+                : true;
+        }),
+        argv.episodes
+    );
     const args = episodes.map(({ url }) => [url]);
     const qualitiesList = await executeTasks(site.getQualities, ...args);
 
     for (const [ind, { qualities }] of qualitiesList.entries()) {
         let quality = qualities.get(argv.quality);
         if (!quality) {
-            console.log(`Quality ${argv.quality} not found. Trying other qualities`);
+            console.log(
+                `Quality ${argv.quality} not found. Trying other qualities`
+            );
             quality = getOtherQuality(qualities, argv.fallback);
         }
 

@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const flatCache = require('flat-cache');
 
@@ -30,7 +30,7 @@ module.exports = class Cache {
         const now = new Date().getTime();
         this.cache.setKey(key, {
             expire: this.expire === false ? false : now + this.expire,
-            data: value
+            data: value,
         });
         this.cache.save();
         // Strange behaviour, if this is not done changes aren't persisted
@@ -54,4 +54,4 @@ module.exports = class Cache {
     all() {
         return this.cache.all();
     }
-}
+};

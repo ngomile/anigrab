@@ -3,16 +3,8 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    getHeaders,
-    formatQualities,
-    extractQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { getHeaders, formatQualities, extractQualities } = require('../utils');
 
 const config = require('../config').getConfig().siteconfig.gogoanime;
 
@@ -30,15 +22,15 @@ const SOURCES_REG = new Map([
     ['vidstream', /href="(https:\/\/vidstreaming.io\/download.*)" target/],
     ['mp4upload', /data-video="(.*)"> Mp4Upload/],
     ['gcloud', /data-video="(.*)">Xstreamcdn/],
-    ['yourupload', /data-video="(.*)">YourUpload/]
+    ['yourupload', /data-video="(.*)">YourUpload/],
 ]);
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www16.gogoanime.io/' });
 
 /**
  * Collects the search results
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
 function collectSearchResults($) {
@@ -56,16 +48,20 @@ function collectSearchResults($) {
 
 /**
  * Executes search query for gogoanime
- * 
- * @param {string} query 
+ *
+ * @param {string} query
  * @returns {Promise<SearchResult[]>}
  */
 async function search(query) {
     const params = { keyword: query };
-    const searchResponse = await request.get(SEARCH_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    }, true);
+    const searchResponse = await request.get(
+        SEARCH_URL,
+        {
+            headers: DEFAULT_HEADERS,
+            qs: params,
+        },
+        true
+    );
     const $ = cheerio.load(searchResponse);
     let searchResults = collectSearchResults($);
     return searchResults;
@@ -73,9 +69,9 @@ async function search(query) {
 
 /**
  * Collects the episodes of the anime
- * 
- * @param {CheerioStatic} $ 
- * @param {string} animeName 
+ *
+ * @param {CheerioStatic} $
+ * @param {string} animeName
  */
 function collectEpisodes($, animeName) {
     let episodes = [];
@@ -102,11 +98,21 @@ async function getAnime(url) {
     const title = $('h1').text();
     const movieID = $('#movie_id').first().attr('value');
     const [, alias] = url.match(ALIAS_REG);
-    const params = { ep_start: 0, ep_end: 9000, id: movieID, default_ep: 0, alias };
-    const response = await request.get(API_URL, {
-        headers: DEFAULT_HEADERS,
-        qs: params
-    }, true);
+    const params = {
+        ep_start: 0,
+        ep_end: 9000,
+        id: movieID,
+        default_ep: 0,
+        alias,
+    };
+    const response = await request.get(
+        API_URL,
+        {
+            headers: DEFAULT_HEADERS,
+            qs: params,
+        },
+        true
+    );
 
     $ = cheerio.load(response);
     const episodes = collectEpisodes($, title);
@@ -129,12 +135,15 @@ async function getQualities(url) {
     let { qualities, extractor } = await extractQualities(info);
     for (const fallbackServer of fallbackServers) {
         if (qualities.size) break;
-        ({ qualities, extractor } = await extractQualities({ ...info, server: fallbackServer }));
+        ({ qualities, extractor } = await extractQualities({
+            ...info,
+            server: fallbackServer,
+        }));
     }
 
     qualities = formatQualities(qualities, {
         extractor,
-        referer: url
+        referer: url,
     });
 
     return { qualities };
@@ -143,5 +152,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};

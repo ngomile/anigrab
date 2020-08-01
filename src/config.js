@@ -7,7 +7,10 @@ const fs = require('fs');
 const os = require('os');
 
 let Config;
-const CONFIG_DIR = os.platform() === 'win32' ? path.join(process.env.APPDATA, 'anigrab') : path.join(process.env.HOME, '.config', 'anigrab');
+const CONFIG_DIR =
+    os.platform() === 'win32'
+        ? path.join(process.env.APPDATA, 'anigrab')
+        : path.join(process.env.HOME, '.config', 'anigrab');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_CONFIG = {
@@ -15,12 +18,10 @@ const DEFAULT_CONFIG = {
         directory: '.',
         quality: '1080p',
         site: 'animekisa',
-        aria2c: ['-c true', '-x 2', '-V']
+        aria2c: ['-c true', '-x 2', '-V'],
     },
     players: {
-        mpv: [
-
-        ]
+        mpv: [],
     },
     siteconfig: {
         animekisa: {
@@ -42,10 +43,10 @@ const DEFAULT_CONFIG = {
         animeflix: {
             server: 'AUEngine',
             fallbackServers: ['FastStream'],
-            version: 'sub'
-        }
-    }
-}
+            version: 'sub',
+        },
+    },
+};
 
 function writeConfig(config) {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 4));
@@ -62,12 +63,15 @@ function readConfig() {
 }
 
 function update(gkey, toObj, fromObj) {
-    if (!toObj.hasOwnProperty(gkey)) toObj[gkey] = {}
+    if (!toObj.hasOwnProperty(gkey)) toObj[gkey] = {};
 
     for (const [key, val] of Object.entries(fromObj[gkey])) {
         if (!toObj[gkey].hasOwnProperty(key)) {
             toObj[gkey][key] = val;
-        } else if (typeof fromObj[gkey][key] === 'object' && fromObj[gkey][key] !== null) {
+        } else if (
+            typeof fromObj[gkey][key] === 'object' &&
+            fromObj[gkey][key] !== null
+        ) {
             update(key, toObj[gkey], fromObj[gkey]);
         }
     }
@@ -98,7 +102,10 @@ function getConfig() {
         writeConfig(config);
         // Taken from https://stackoverflow.com/questions/21363912/how-to-resolve-a-path-that-includes-an-environment-variable-in-nodejs
         const directory = config.dl.directory;
-        config.dl.directory = directory.replace(/%([^%]+)%/g, (_, n) => process.env[n]);
+        config.dl.directory = directory.replace(
+            /%([^%]+)%/g,
+            (_, n) => process.env[n]
+        );
         Config = config;
         return config;
     }
@@ -106,5 +113,5 @@ function getConfig() {
 
 module.exports = {
     getConfig,
-    CONFIG_DIR
+    CONFIG_DIR,
 };

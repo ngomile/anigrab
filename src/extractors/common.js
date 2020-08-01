@@ -1,13 +1,13 @@
 'use strict';
 
-/** 
+/**
  * Represents the actual extracted url with the referer,
  * must be created by the extractors extract function
  * */
 class ExtractedInfo {
     /**
-     * @param {string} url 
-     * @param {string} referer 
+     * @param {string} url
+     * @param {string} referer
      */
     constructor(url, referer) {
         this.url = url;
@@ -16,5 +16,5 @@ class ExtractedInfo {
 }
 
 module.exports = {
-    ExtractedInfo
-}
+    ExtractedInfo,
+};

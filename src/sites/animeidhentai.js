@@ -3,16 +3,8 @@
 const cheerio = require('cheerio');
 
 const request = require('../request');
-const {
-    SearchResult,
-    Anime,
-    Episode
-} = require('./common');
-const {
-    extractKsplayer,
-    getHeaders,
-    formatQualities
-} = require('../utils');
+const { SearchResult, Anime, Episode } = require('./common');
+const { extractKsplayer, getHeaders, formatQualities } = require('../utils');
 
 /** The url to make search queries to */
 const SEARCH_URL = 'https://animeidhentai.com/search/';
@@ -30,12 +22,12 @@ const DEFAULT_HEADERS = getHeaders({ Referer: 'https://animeidhentai.com/' });
 
 /**
  * Collects the search results from animeidhentai
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {SearchResult[]}
  */
 function collectSearchResults($) {
-    // animeidhentai does not represent a search result as simply 
+    // animeidhentai does not represent a search result as simply
     // the title but it shows the episodes instead
     let searchResults = [];
     $('.movies-lst .hentai').each(function (ind, element) {
@@ -43,7 +35,7 @@ function collectSearchResults($) {
         const poster = $(this).find('img').attr('src');
         // Simply doing $(this).find('a') isn't working for some reason
         const [, url] = $(this).html().match(URL_REG);
-        const searchResult = new SearchResult(title, url, poster)
+        const searchResult = new SearchResult(title, url, poster);
         searchResults.push(searchResult);
     });
 
@@ -52,7 +44,7 @@ function collectSearchResults($) {
 
 /**
  * Executes a search query on animeidhentai
- * 
+ *
  * @param {string} query
  * @returns {Promise<SearchResult[]>} List of search resuts
  */
@@ -68,8 +60,8 @@ async function search(query) {
 
 /**
  * Collects the episodes from animeidhentai
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @returns {Episode[]} List of episodes
  */
 function collectEpisodes($) {
@@ -85,8 +77,8 @@ function collectEpisodes($) {
 
 /**
  * Extracts the title and the episodes of the hentai on animeidhentai
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
@@ -100,7 +92,12 @@ async function getAnime(url) {
     }
     page = await request.get(url, { headers: DEFAULT_HEADERS });
     $ = cheerio.load(page);
-    const title = $('.entry-title').first().text().replace(/ Episode \d{1,3}\s?/, ' ').replace('-', '').trim();
+    const title = $('.entry-title')
+        .first()
+        .text()
+        .replace(/ Episode \d{1,3}\s?/, ' ')
+        .replace('-', '')
+        .trim();
     const episodes = collectEpisodes($);
     const anime = new Anime(title, episodes);
     return anime;
@@ -108,8 +105,8 @@ async function getAnime(url) {
 
 /**
  * Gets the available subtitle types
- * 
- * @param {CheerioStatic} $ 
+ *
+ * @param {CheerioStatic} $
  * @param {Map<String, String>} idToStream
  * @returns {Map<String, String>}
  */
@@ -129,8 +126,8 @@ function collectSubTypes($, idToStream) {
 /**
  * Extracts the url and referer and extractor for the episode
  * with it's associated quality from animeidhentai
- * 
- * @param {string} url 
+ *
+ * @param {string} url
  * @returns {Promise<Map<string, any>>}
  */
 async function getQualities(url) {
@@ -138,7 +135,11 @@ async function getQualities(url) {
     const [, id] = page.match(DATA_ID_REG);
     // animeidhentai has more than one subtitle type but sub-2 usually is the one
     // that will be prioritized
-    const idToStream = new Map([['0', 'sub'], ['1', 'sub-2'], ['2', 'nosub']]);
+    const idToStream = new Map([
+        ['0', 'sub'],
+        ['1', 'sub-2'],
+        ['2', 'nosub'],
+    ]);
     const $ = cheerio.load(page);
     const subTypes = collectSubTypes($, idToStream);
 
@@ -148,7 +149,7 @@ async function getQualities(url) {
     const formData = { id, action: 'ajax_player', opt: subType };
     const streamPage = await request.post(API_URL, {
         headers: getHeaders({ Referer: url }),
-        formData: formData
+        formData: formData,
     });
 
     let [, streamURL] = streamPage.match(SRC_REG);
@@ -165,5 +166,5 @@ async function getQualities(url) {
 module.exports = {
     search,
     getAnime,
-    getQualities
-}
+    getQualities,
+};
