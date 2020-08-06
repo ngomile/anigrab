@@ -56,7 +56,7 @@ module.exports.extract = async function ({ url }) {
     const [, postURL, _token] = deobsfucatedJS.match(
         /action="([^"]+).*?value="([^"]+)/
     );
-    const form = { _token };
+    const form = { _token, _cf: 1 };
     response = await request.post(postURL, { headers, form, ...OPTIONS });
     return new ExtractedInfo(response.headers.location, url);
 };
