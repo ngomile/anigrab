@@ -306,7 +306,9 @@ async function extractQualities({ page, server, sourcesReg }) {
     const serverToExtractor = new Map([['gcloud', extractGcloud]]);
     let match = page.match(sourcesReg.get(server));
     let extractor = '';
-    if (match) {
+    // Some configs will still have vidstream as a fallback server
+    // this at least prevents that case although it does not look good
+    if (match && server !== 'vidstream') {
         const [, source] = match;
         if (serverToExtractor.has(server)) {
             const extractorHandler = serverToExtractor.get(server);
