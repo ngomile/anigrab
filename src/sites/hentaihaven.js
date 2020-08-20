@@ -121,7 +121,7 @@ async function getQualities(url) {
 
     let sourceData = await request.post(API_URL, {
         headers: getHeaders({ Referer: playerSrc }),
-        formData: formData,
+        formData,
     });
 
     const { sources } = JSON.parse(sourceData.match(SOURCES_REG)[1]);
