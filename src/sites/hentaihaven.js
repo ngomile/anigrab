@@ -13,10 +13,8 @@ const API_URL = 'https://hentaihaven.xxx/wp-admin/admin-ajax.php';
 
 /** Regular expression to extract player source  */
 const PLAYER_SRC_REG = /iframe src="([^"]+)/;
-/** Regular expression to extract json part of video data  */
-const VIDEO_DATA_REG = /\$\.ajax\((\{.*\})/;
 /** Regular expression to match the form parts necessary to get real source */
-const FORM_VALS_REG = /action:'(.*)',a:'(.*)',b:'(.*)'/;
+const FORM_VALS_REG = /action:\s+'(.*?)',\s+a:\s+'(.*?)',\s+b:\s+'(.*?)'/;
 /** Regular expression to extract json of source */
 const SOURCES_REG = /(\{.*\})/;
 
@@ -83,11 +81,23 @@ function collectEpisodes($, title) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS });
-    const $ = cheerio.load(page);
+    let page = await request.get(url, { headers: DEFAULT_HEADERS });
+    let $ = cheerio.load(page);
     const title = $('h1').text().trim();
+    const [, hentaiID] = page.match(/manga&p=(\d+)/);
+
+    // Retrieves the actual episodes since they seem to be loaded
+    // lazily now
+    page = await request.post(API_URL, {
+        headers: DEFAULT_HEADERS,
+        formData: { action: 'manga_get_chapters', manga: hentaiID },
+    });
+
+    $ = cheerio.load(page);
+
     const episodes = collectEpisodes($, title);
     const anime = new Anime(title, episodes);
+
     return anime;
 }
 
@@ -106,8 +116,7 @@ async function getQualities(url) {
     const playerPage = await request.get(playerSrc, {
         headers: DEFAULT_HEADERS,
     });
-    let [, videoData] = playerPage.match(VIDEO_DATA_REG);
-    const [, action, a, b] = videoData.match(FORM_VALS_REG);
+    const [, action, a, b] = playerPage.match(FORM_VALS_REG);
     const formData = { action, a, b };
 
     let sourceData = await request.post(API_URL, {
