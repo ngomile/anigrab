@@ -16,7 +16,6 @@ const SITE_URL = 'https://animekisa.tv';
 /** A mapping of sources to regular expressions to match sources to  */
 const SOURCES_REG = new Map([
     ['gcloud', /var Fembed = "([^"]+)/],
-    ['vidstream', /var VidStreaming = "([^"]+)/],
     ['mp4upload', /var MP4Upload = "([^"]+)/],
 ]);
 

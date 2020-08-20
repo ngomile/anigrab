@@ -80,42 +80,6 @@ async function extractGcloud(url) {
 }
 
 /**
- * Extracts the quality and the associated url from vidstream
- *
- * @param {string} url
- * @param {string} referer
- * @returns {Promise<Map<string, string>>}
- */
-async function extractVidstream(url, referer = '') {
-    if (!url.includes('download')) {
-        const [, params] = url.match(/load.php\?(.*)/);
-        url = `https://vidstreaming.io/download?${params}`;
-    }
-
-    referer = referer || url;
-    const headers = getHeaders({ Referer: referer });
-    let qualities = new Map();
-    page = await request.get(url, { headers: headers }, true);
-
-    const $ = cheerio.load(page);
-    $('.mirror_link')
-        .first()
-        .find('a')
-        .each(function (ind, element) {
-            const url = $(this).attr('href');
-            let quality = url.match(/(\d{3,4}P)/);
-            // If quality regex worked use destructuring to capture the matching group
-            // from quality otherwise quality is unknown
-            if (quality) [, quality] = quality;
-            else quality = 'unknown';
-            quality = quality.toLowerCase();
-            qualities.set(quality, url);
-        });
-
-    return qualities;
-}
-
-/**
  * Given a mapping of qualities to associated urls
  * modifies the mapping as to give more information
  * such as the extractor and referer to use from extra
@@ -343,11 +307,7 @@ async function extractQualities({ page, server, url, sourcesReg }) {
     let source = '';
     let match = page.match(sourcesReg.get(server));
     if (match) {
-        if (server === 'vidstream') {
-            [, source] = match;
-            extractor = 'universal';
-            qualities = await extractVidstream(source, url);
-        } else if (server === 'gcloud') {
+        if (server === 'gcloud') {
             [, source] = match;
             extractor = 'universal';
             qualities = await extractGcloud(source);
@@ -426,7 +386,6 @@ module.exports = {
     bypassCaptcha,
     cache,
     extractKsplayer,
-    extractVidstream,
     getHeaders,
     generateFormData,
     formatQualities,

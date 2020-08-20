@@ -26,14 +26,14 @@ const DEFAULT_CONFIG = {
     siteconfig: {
         animekisa: {
             server: 'gcloud',
-            fallbackServers: ['mp4upload', 'vidstream'],
+            fallbackServers: ['mp4upload'],
         },
         animepahe: {
             version: 'subbed',
         },
         gogoanime: {
             server: 'gcloud',
-            fallbackServers: ['mp4upload', 'yourupload', 'vidstream'],
+            fallbackServers: ['mp4upload', 'yourupload'],
         },
         ryuanime: {
             version: 'subbed',

@@ -19,7 +19,6 @@ const API_URL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 const ALIAS_REG = /category\/(.*)$/;
 /** Mapping of providers to associated regular expressions */
 const SOURCES_REG = new Map([
-    ['vidstream', /href="(https:\/\/vidstreaming.io\/download.*)" target/],
     ['mp4upload', /data-video="(.*)"> Mp4Upload/],
     ['gcloud', /data-video="(.*)">Xstreamcdn/],
     ['yourupload', /data-video="(.*)">YourUpload/],
