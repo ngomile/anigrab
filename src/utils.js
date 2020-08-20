@@ -301,22 +301,23 @@ async function executeCommand(cmd, args = []) {
  * @param {string} obj.url
  * @param {Map<string, RegExp>} obj.sourcesReg
  */
-async function extractQualities({ page, server, url, sourcesReg }) {
+async function extractQualities({ page, server, sourcesReg }) {
     let qualities = new Map();
-    let extractor = '';
-    let source = '';
+    const serverToExtractor = new Map([['gcloud', extractGcloud]]);
     let match = page.match(sourcesReg.get(server));
+    let extractor = '';
     if (match) {
-        if (server === 'gcloud') {
-            [, source] = match;
+        const [, source] = match;
+        if (serverToExtractor.has(server)) {
+            const extractorHandler = serverToExtractor.get(server);
             extractor = 'universal';
-            qualities = await extractGcloud(source);
+            qualities = await extractorHandler(source);
         } else {
-            [, source] = page.match(sourcesReg.get(server));
             extractor = server;
             qualities.set('unknown', source);
         }
     }
+
     return { qualities, extractor };
 }
 
