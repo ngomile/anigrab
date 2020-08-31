@@ -46,8 +46,8 @@ const versionToSub = new Map([
  * @param {string} obj.poster
  * @returns {SearchResult}
  */
-function handleSearchResult({ title, slug, poster }) {
-    const url = `${ANIME_URL}${slug}`;
+function handleSearchResult({ title, session, poster }) {
+    const url = `${ANIME_URL}${session}`;
     return new SearchResult(title, url, poster);
 }
 
