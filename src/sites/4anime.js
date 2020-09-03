@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const request = require('../request');
 const { SearchResult, Anime, Episode } = require('./common');
 const { getHeaders, formatQualities } = require('../utils');
+const { USER_AGENTS } = require('../user_agents');
 
 // 4anime base url
 const SITE_URL = 'https://4anime.to/';
@@ -11,7 +12,10 @@ const SITE_URL = 'https://4anime.to/';
 // Regular expression to extract source file of episode
 const SOURCE_REG = /source src="([^"]+)/;
 
-const DEFAULT_HEADERS = getHeaders({ Referer: SITE_URL });
+const DEFAULT_HEADERS = getHeaders({
+    Referer: SITE_URL,
+    'User-Agent': USER_AGENTS[0],
+});
 
 /**
  * Executes search query for 4anime
@@ -78,6 +82,7 @@ async function getQualities(url) {
         extractor: 'universal',
         referer: url,
     });
+
     return { qualities };
 }
 
