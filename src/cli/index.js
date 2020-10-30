@@ -108,7 +108,7 @@ async function main() {
     if (argv.filterTitle) filterTitle = new RegExp(argv.filterTitle);
 
     const site = siteLoader(animeurl) || siteLoader(argv.site);
-    if (!site) {
+    if (!site || !SITES.some(site => animeurl.includes(site))) {
         console.log(`Site not found for ${animeurl} or ${argv.site}`);
         return;
     }
