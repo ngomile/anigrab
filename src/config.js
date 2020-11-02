@@ -30,6 +30,8 @@ const DEFAULT_CONFIG = {
         },
         animepahe: {
             version: 'subbed',
+            fansub: 'HorribleSubs',
+            fallbackFansubs: ['Okay-Subs', 'any'],
         },
         gogoanime: {
             server: 'gcloud',

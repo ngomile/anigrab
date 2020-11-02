@@ -180,7 +180,9 @@ function getServers(page) {
  */
 async function getEpisodeQualities(server, episodeID, session) {
     const version = versionToSub.get(config.version);
+    const { fansub: sub, fallbackFansubs } = config;
     let qualities = new Map();
+    let fallbackQualities = new Map();
     const params = { id: episodeID, m: 'embed', p: server, session: session };
     const { data = '' } = await request.get(
         API_URL,
@@ -194,9 +196,43 @@ async function getEpisodeQualities(server, episodeID, session) {
 
     for (const info of providerInfo) {
         const [quality] = Object.keys(info);
-        const { audio, kwik } = info[quality];
-        if (version === audio) qualities.set(`${quality}p`, kwik);
+        const { audio, kwik, fansub } = info[quality];
+        if (version !== audio) continue;
+        if (sub === fansub) {
+            // provider matched criteria in config
+            qualities.set(`${quality}p`, kwik);
+        } else {
+            // provider didn't match criteria but place it into fallback
+            if (fallbackQualities.has(fansub)) {
+                fallbackQualities.get(fansub).set(`${quality}p`, kwik);
+            } else {
+                fallbackQualities
+                    .set(fansub, new Map())
+                    .get(fansub)
+                    .set(`${quality}p`, kwik);
+            }
+        }
     }
+
+    if (!qualities.size) {
+        // check if fallback fansub is in the fallback qualities
+        for (const fallbackFansub of fallbackFansubs) {
+            if (fallbackQualities.has(fallbackFansub)) {
+                qualities = fallbackQualities.get(fallbackFansub);
+                break;
+            }
+        }
+
+        // if no fallback fansub was found and any fansub can be used
+        // then pick first one
+        if (!qualities.size && fallbackFansubs.includes('any')) {
+            for (const [anyFansub] of fallbackQualities.entries()) {
+                qualities = fallbackQualities.get(anyFansub);
+                break;
+            }
+        }
+    }
+
     return qualities;
 }
 
