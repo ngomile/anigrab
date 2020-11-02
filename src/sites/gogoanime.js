@@ -19,9 +19,9 @@ const API_URL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 const ALIAS_REG = /category\/(.*)$/;
 /** Mapping of providers to associated regular expressions */
 const SOURCES_REG = new Map([
-    ['mp4upload', /data-video="(.*?)">.*Mp4Upload/],
-    ['gcloud', /data-video="(.*?)">.*Xstreamcdn/],
-    ['yourupload', /data-video="(.*?)">.*YourUpload/],
+    ['mp4upload', /data-video="(.*?mp4upload.*?)"/],
+    ['gcloud', /data-video="(.*?fcdn\.stream.*?)"/],
+    ['yourupload', /data-video="(.*?yourupload.*?)"/],
 ]);
 
 const DEFAULT_HEADERS = getHeaders({ Referer: 'https://www16.gogoanime.io/' });
