@@ -108,7 +108,9 @@ async function main() {
     if (argv.filterTitle) filterTitle = new RegExp(argv.filterTitle);
 
     const site = siteLoader(animeurl) || siteLoader(argv.site);
-    if (!site || !SITES.some(site => animeurl.includes(site))) {
+    // prettier-ignore
+    const siteNotFound = !site || (animeurl.startsWith('http') && !SITES.some(site => animeurl.includes(site)));
+    if (siteNotFound) {
         console.log(`Site not found for ${animeurl} or ${argv.site}`);
         return;
     }
