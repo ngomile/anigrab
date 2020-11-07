@@ -1,4 +1,4 @@
-# anigrab &middot; [![npm version](https://img.shields.io/npm/v/anigrab.svg?style=flat)](https://www.npmjs.com/package/anigrab) ![PRS](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+# anigrab &middot; [![npm version](https://img.shields.io/npm/v/anigrab.svg?style=flat)](https://www.npmjs.com/package/anigrab) [![PRS](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ngomile/anigrab)
 
 Fast and efficient anime downloader that gets the episodes you need quickly, saving you your precious time and energy.
 
