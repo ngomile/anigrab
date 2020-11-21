@@ -116,7 +116,6 @@ async function main() {
     }
 
     if (!/https?.*/.test(animeurl)) {
-        console.log('In here');
         const searchResults = await site.search(animeurl);
         if (searchResults.length === 0) {
             console.log(`No search results found for ${animeurl}`);
