@@ -64,9 +64,9 @@ async function extractKsplayer(url, referer = '') {
 async function extractGcloud(url) {
     let qualities = new Map();
     const [, id] = url.match(/v\/(.*)/);
-    url = `https://gcloud.live/api/source/${id}`;
+    url = `https://fcdn.stream/api/source/${id}`;
     const { data } = await request.post(url, {
-        headers: getHeaders({ Referer: url }),
+        headers: getHeaders({ Referer: url, Host: 'fcdn.stream' }),
     });
 
     // gcloud may respond with a string error message but when successful
