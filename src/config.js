@@ -65,7 +65,7 @@ function readConfig() {
 }
 
 function update(gkey, toObj, fromObj) {
-    if (!toObj.hasOwnProperty(gkey)) toObj[gkey] = {};
+    if (!toObj.hasOwnProperty(gkey)) toObj[gkey] = fromObj[gkey];
 
     for (const [key, val] of Object.entries(fromObj[gkey])) {
         if (!toObj[gkey].hasOwnProperty(key)) {
