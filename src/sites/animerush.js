@@ -68,7 +68,6 @@ async function getAnime(url) {
         episodes.push(new Episode(episodeTitle, url));
     });
 
-    console.log(episodes.reverse());
     return new Anime(title, episodes.reverse());
 }
 
