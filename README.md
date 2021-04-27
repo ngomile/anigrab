@@ -20,6 +20,7 @@ Fast and efficient anime downloader that gets the episodes you need quickly, sav
 -   animeidhentai
 -   animeout
 -   animepahe
+-   animerush
 -   gogoanime
 -   hentaihaven
 -   ryuanime

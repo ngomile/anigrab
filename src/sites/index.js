@@ -8,6 +8,7 @@ const SITES = (module.exports.SITES = [
     'animekisa',
     'animeout',
     'animepahe',
+    'animerush',
     'gogoanime',
     'hentaihaven',
     'ryuanime',

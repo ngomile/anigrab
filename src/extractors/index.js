@@ -5,6 +5,7 @@ const EXTRACTORS = (module.exports.EXTRACTORS = [
     'mp4upload',
     'trollvid',
     'universal',
+    'yourupload',
 ]);
 
 module.exports.extractorLoader = function (extractorName) {

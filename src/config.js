@@ -33,6 +33,10 @@ const DEFAULT_CONFIG = {
             fansub: 'HorribleSubs',
             fallbackFansubs: ['Okay-Subs', 'any'],
         },
+        animerush: {
+            server: 'mp4upload',
+            fallbackServers: ['yourupload'],
+        },
         gogoanime: {
             server: 'gcloud',
             fallbackServers: ['mp4upload', 'yourupload'],
