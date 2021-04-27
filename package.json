@@ -1,6 +1,6 @@
 {
     "name": "anigrab",
-    "version": "1.10.0",
+    "version": "1.10.1",
     "description": "Free and fast open source anime downloader",
     "main": "src/index.js",
     "scripts": {
