@@ -1,6 +1,6 @@
 {
     "name": "anigrab",
-    "version": "1.9.11",
+    "version": "1.10.0",
     "description": "Free and fast open source anime downloader",
     "main": "src/index.js",
     "scripts": {
@@ -39,7 +39,7 @@
         "yargs": "^15.3.1"
     },
     "bin": {
-        "anigrab": "./src/cli/index.js"
+        "anigrab": "src/cli/index.js"
     },
     "devDependencies": {
         "prettier": "2.0.5"
