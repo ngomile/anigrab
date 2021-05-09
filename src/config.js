@@ -18,7 +18,7 @@ const DEFAULT_CONFIG = {
         directory: '.',
         quality: '1080p',
         site: 'animekisa',
-        aria2c: ['-c true', '-x 2', '-V'],
+        aria2c: ['-c true', '-x 16', '-V'],
     },
     players: {
         mpv: [],
