@@ -19,6 +19,7 @@ module.exports.download = async (directory, fileName, url, referer) => {
         `-o ${fileName}`,
         `--referer=${referer}`,
         `-U ${USER_AGENTS[0]}`,
+        `-x 16`,
         ...config,
     ];
 
