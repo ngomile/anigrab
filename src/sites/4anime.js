@@ -26,11 +26,11 @@ const DEFAULT_HEADERS = getHeaders({
 async function search(query) {
     let searchResults = [];
     query = query.toLowerCase().split(' ').join('+');
-    const searchResponse = await request.get(
-        SITE_URL,
-        { qs: { s: query }, headers: DEFAULT_HEADERS },
-        true
-    );
+    const searchResponse = await request.get(SITE_URL, {
+        qs: { s: query },
+        headers: DEFAULT_HEADERS,
+        cf: true,
+    });
     const $ = cheerio.load(searchResponse);
 
     $('#headerDIV_95').each(function (ind, elem) {
@@ -51,7 +51,7 @@ async function search(query) {
  */
 async function getAnime(url) {
     let episodes = [];
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS, cf: true });
     const $ = cheerio.load(page);
     const animeTitle = $('div').find('p.single-anime-desktop').text();
 
@@ -74,7 +74,7 @@ async function getAnime(url) {
  */
 async function getQualities(url) {
     let qualities = new Map();
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS, cf: true });
     const [, source] = page.match(SOURCE_REG);
     const [, quality] = source.match(/(\d{3,4}p)/);
     qualities.set(quality, source);

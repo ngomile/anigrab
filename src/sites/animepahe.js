@@ -119,7 +119,7 @@ function getEpisodes(title, url, animeData) {
  * @returns {Promise<Anime>}
  */
 async function getAnime(url) {
-    const page = await request.get(url, { headers: DEFAULT_HEADERS }, true);
+    const page = await request.get(url, { headers: DEFAULT_HEADERS, cf: true });
     const [, title] = TITLE_REG.exec(page);
     const [, animeID] = ANIME_ID_REG.exec(page);
     const [, animeCode] = ANIME_CODE_REG.exec(page);

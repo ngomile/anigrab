@@ -61,8 +61,8 @@ async function getAnime(url) {
     // Speed up fetching meta and episode information by requesting
     // both concurrently
     const [{ title }, episodeData] = await Promise.all([
-        request.get(META_URL, { qs: { slug }, headers }, true),
-        request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers }, true),
+        request.get(META_URL, { qs: { slug }, headers, cf: true }),
+        request.get(EPISODE_SCHEMA_URL, { qs: { slug }, headers, cf: true }),
     ]);
 
     if (episodeData['@type'] === 'Movie') {
