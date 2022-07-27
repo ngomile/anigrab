@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const FileCookieStore = require('tough-cookie-filestore');
 
-const { CONFIG_DIR } = require('./config');
+const { CONFIG_DIR, getConfig } = require('./config');
 const COOKIES_FILE = path.join(CONFIG_DIR, 'cookies.json');
 
 if (!fs.existsSync(COOKIES_FILE)) {
@@ -14,6 +14,7 @@ if (!fs.existsSync(COOKIES_FILE)) {
 }
 
 const requestOptions = { timeout: 30000, json: true };
+const { requestConfig } = getConfig();
 
 const rp = require('request-promise').defaults({
     jar: new FileCookieStore(COOKIES_FILE),
@@ -38,7 +39,7 @@ async function request(url, { cf, ...options }) {
             const result = await requestHandler(url, options);
             return result;
         } catch (error) {
-            if (retries < 10) {
+            if (retries < requestConfig.retryAttempts) {
                 retries++;
                 await timeout(delay(retries));
                 continue;

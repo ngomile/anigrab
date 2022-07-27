@@ -52,6 +52,9 @@ const DEFAULT_CONFIG = {
             version: 'sub',
         },
     },
+    requestConfig: {
+        retryAttempts: 3,
+    },
 };
 
 function writeConfig(config) {
