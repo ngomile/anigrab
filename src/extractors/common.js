@@ -4,7 +4,7 @@
  * Represents the actual extracted url with the referer,
  * must be created by the extractors extract function
  * */
-class ExtractedInfo {
+export class ExtractedInfo {
     /**
      * @param {string} url
      * @param {string} referer
@@ -14,7 +14,3 @@ class ExtractedInfo {
         this.referer = referer;
     }
 }
-
-module.exports = {
-    ExtractedInfo,
-};

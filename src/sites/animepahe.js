@@ -1,15 +1,11 @@
 'use strict';
 
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const {
-    getHeaders,
-    formatQualities,
-    range,
-    executeTasks,
-} = require('../utils');
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities, range, executeTasks } from '../utils.js';
+import { getConfig } from '../config.js';
 
-const config = require('../config').getConfig().siteconfig.animepahe;
+const config = getConfig().siteconfig.animepahe;
 
 /** Part of the url for anime combined with slug to make full url */
 const ANIME_URL = 'https://animepahe.com/anime/';
@@ -25,7 +21,7 @@ const SERVER_REG = /data-provider="([^"]+)/g;
 /** Regular expression to extract the id and session for the episode */
 const ID_SESSION_REG = /getUrls\((\d+), "([^"]+)/;
 /** Regular expresion to find the title of the anime */
-const TITLE_REG = /<h1>([^<]+)/;
+const TITLE_REG = /<h1>(?:<span>)?([^<]+)/;
 
 /** List of supported servers */
 const SUPPORTED_SERVERS = ['kwik', 'mp4upload'];
@@ -269,8 +265,4 @@ async function getQualities(url) {
     return { qualities };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };

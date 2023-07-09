@@ -1,8 +1,8 @@
 'use strict';
 
-const request = require('../request');
-const { ExtractedInfo } = require('./common');
-const { executeCommand, getHeaders } = require('../utils');
+import * as request from '../request.js';
+import { ExtractedInfo } from './common.js';
+import { executeCommand, getHeaders } from '../utils.js';
 
 /**
  * Extracts stream url and referer from mp4upload
@@ -12,7 +12,7 @@ const { executeCommand, getHeaders } = require('../utils');
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-module.exports.extract = async function ({ url, referer = '' }) {
+export async function extract({ url, referer = '' }) {
     referer = referer || url;
     let streamURL;
     const page = await request.get(url, {
@@ -33,5 +33,6 @@ module.exports.extract = async function ({ url, referer = '' }) {
         ]);
         [, streamURL] = deobsfucatedJS.match(/src[:\(]\s*"([^"]+)/);
     }
+
     return new ExtractedInfo(streamURL, url);
-};
+}

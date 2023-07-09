@@ -2,15 +2,16 @@
 
 'use strict';
 
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 
 let Config;
-const CONFIG_DIR =
+export const CONFIG_DIR =
     os.platform() === 'win32'
         ? path.join(process.env.APPDATA, 'anigrab')
         : path.join(process.env.HOME, '.config', 'anigrab');
+
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_CONFIG = {
@@ -86,7 +87,7 @@ function update(gkey, toObj, fromObj) {
     }
 }
 
-function getConfig() {
+export function getConfig() {
     if (typeof Config === 'object' && Config !== null) return Config;
 
     try {
@@ -119,8 +120,3 @@ function getConfig() {
         return config;
     }
 }
-
-module.exports = {
-    getConfig,
-    CONFIG_DIR,
-};

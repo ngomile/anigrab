@@ -1,13 +1,15 @@
 'use strict';
 
-const fetch = require('node-fetch');
-const { CookieJar } = require('tough-cookie');
+import fetch from 'node-fetch';
+import { CookieJar } from 'tough-cookie';
+import cloudscraper from 'cloudscraper';
+import { getConfig } from './config.js';
 
 // Default request options passed to cloudscraper
 const requestOptions = { timeout: 30000, json: true };
-const { requestConfig } = require('./config').getConfig();
+const { requestConfig } = getConfig();
 
-const cloudscraper = require('cloudscraper').defaults({
+const cloudscraperInstance = cloudscraper.defaults({
     jar: true,
     ...requestOptions,
 });
@@ -22,7 +24,7 @@ const delay = numRetry => {
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, { cf, ...options }) {
-    const requestHandler = cf ? cloudscraper : fetch;
+    const requestHandler = cf ? cloudscraperInstance : fetch;
 
     // If using node-fetch request handler configure cookies
     // to be sent with its request
@@ -73,9 +75,4 @@ async function post(url, options = {}) {
     return response;
 }
 
-module.exports = {
-    get,
-    post,
-    delay,
-    timeout,
-};
+export { get, post, delay, timeout };

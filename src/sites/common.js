@@ -4,7 +4,7 @@
  * Represents a search result, used when scraping
  * search results from site
  */
-class SearchResult {
+export class SearchResult {
     /**
      * @param {string} title
      * @param {string} url
@@ -25,7 +25,7 @@ class SearchResult {
  * Represent an episode, used when scraping the
  * episodes of an anime
  */
-class Episode {
+export class Episode {
     /**
      * @param {string} title
      * @param {string} url
@@ -44,7 +44,7 @@ class Episode {
  * Represents an anime with its title and the episodes
  * it has, used when scraping the title and episodes
  */
-class Anime {
+export class Anime {
     /**
      * @param {string} title
      * @param {Episode[]} episodes
@@ -58,9 +58,3 @@ class Anime {
         return this.title;
     }
 }
-
-module.exports = {
-    SearchResult,
-    Anime,
-    Episode,
-};

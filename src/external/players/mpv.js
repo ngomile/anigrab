@@ -1,11 +1,14 @@
-const { executeCommand } = require('../../utils');
-const { mpv: mpvConfig } = require('../../config').getConfig().players;
+import { executeCommand } from '../../utils.js';
+import { getConfig } from '../../config.js';
 
-module.exports.play = async (url, referer) => {
+const { mpv: mpvConfig } = getConfig().players;
+
+export async function play(url, referer) {
     const args = [
         ...mpvConfig,
         `--http-header-fields=referer:${referer}`,
         `${url}`,
     ];
+
     await executeCommand('mpv', args);
-};
+}

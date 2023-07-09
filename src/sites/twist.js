@@ -1,12 +1,12 @@
 'use strict';
 
-const fuzz = require('fuzzball');
-const crypto = require('crypto-js');
-const aes = require('crypto-js/aes');
+import * as fuzz from 'fuzzball';
+import crypto from 'crypto-js';
+import aes from 'crypto-js/aes.js';
 
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const { getHeaders, formatQualities } = require('../utils');
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities } from '../utils.js';
 
 /** Base site url */
 const SITE_URL = 'https://twist.moe';
@@ -115,8 +115,4 @@ async function getQualities(url) {
     };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };

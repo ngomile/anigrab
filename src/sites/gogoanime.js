@@ -1,12 +1,13 @@
 'use strict';
 
-const cheerio = require('cheerio');
+import cheerio from 'cheerio';
 
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const { getHeaders, formatQualities, extractQualities } = require('../utils');
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities, extractQualities } from '../utils.js';
+import { getConfig } from '../config.js';
 
-const config = require('../config').getConfig().siteconfig.gogoanime;
+const config = getConfig().siteconfig.gogoanime;
 
 /** The url of the site */
 const SITE_URL = 'https://www16.gogoanime.io';
@@ -148,8 +149,4 @@ async function getQualities(url) {
     return { qualities };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };

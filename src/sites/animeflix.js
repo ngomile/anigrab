@@ -1,10 +1,11 @@
 'use strict';
 
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const { getHeaders, formatQualities } = require('../utils');
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities } from '../utils.js';
+import { getConfig } from '../config.js';
 
-const config = require('../config').getConfig().siteconfig.animeflix;
+const config = getConfig().siteconfig.animeflix;
 
 /** Base site url for animeflix */
 const SITE_URL = 'https://animeflix.io';
@@ -140,8 +141,4 @@ async function getQualities(url) {
     return { qualities };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };

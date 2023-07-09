@@ -1,6 +1,6 @@
 'use strict';
 
-const { ExtractedInfo } = require('./common');
+import { ExtractedInfo } from './common.js';
 
 /**
  * This extractor simply returns the url and referer it was
@@ -11,7 +11,7 @@ const { ExtractedInfo } = require('./common');
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-module.exports.extract = async ({ url, referer = '' }) => {
+export async function extract({ url, referer = '' }) {
     referer = referer || url;
     return new ExtractedInfo(url, referer);
-};
+}

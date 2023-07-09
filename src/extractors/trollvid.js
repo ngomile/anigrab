@@ -1,8 +1,8 @@
 'use strict';
 
-const request = require('../request');
-const { ExtractedInfo } = require('./common');
-const { getHeaders } = require('../utils');
+import * as request from '../request.js';
+import { ExtractedInfo } from './common.js';
+import { getHeaders } from '../utils.js';
 
 /** Regular expression to match the source url of the video */
 const SOURCE_REG = /source src="([^"]+)/;
@@ -15,7 +15,7 @@ const SOURCE_REG = /source src="([^"]+)/;
  * @param {string} [obj.referer]
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-module.exports.extract = async function ({ url, referer = '' }) {
+export async function extract({ url, referer = '' }) {
     referer = referer || url;
     const page = await request.get(url, {
         headers: getHeaders({ Referer: referer }),
@@ -30,6 +30,8 @@ module.exports.extract = async function ({ url, referer = '' }) {
         resolveWithFullResponse: true,
         simple: false,
     });
+
     const streamURL = response.headers.location;
+
     return new ExtractedInfo(streamURL, src);
-};
+}

@@ -1,14 +1,14 @@
 'use strict';
 
-const request = require('../request');
-const { ExtractedInfo } = require('./common');
-const {
+import * as request from '../request.js';
+import { ExtractedInfo } from './common.js';
+import {
     cache,
     executeCommand,
     getHeaders,
     bypassCaptcha,
     generateFormData,
-} = require('../utils');
+} from '../utils.js';
 
 const DEFAULT_HEADERS = getHeaders();
 const OPTIONS = {
@@ -25,7 +25,7 @@ const OPTIONS = {
  * @param {string} obj.url
  * @returns {Promise<ExtractedInfo>} The extracted information
  */
-module.exports.extract = async function ({ url }) {
+export async function extract({ url }) {
     let response;
     url = url.replace(/\be\b/, 'f');
     const { hostname } = new URL(url);
@@ -43,7 +43,11 @@ module.exports.extract = async function ({ url }) {
             passToken,
             headers
         );
-        response = await request.post(bypassURL, { headers, form, ...OPTIONS });
+        response = await request.post(bypassURL, {
+            headers,
+            form,
+            ...OPTIONS,
+        });
     } else {
         response = await request.get(url, { headers, ...OPTIONS });
     }
@@ -57,6 +61,11 @@ module.exports.extract = async function ({ url }) {
         /action="([^"]+).*?value="([^"]+)/
     );
     const form = { _token, _cf: 1 };
-    response = await request.post(postURL, { headers, form, ...OPTIONS });
+    response = await request.post(postURL, {
+        headers,
+        form,
+        ...OPTIONS,
+    });
+
     return new ExtractedInfo(response.headers.location, url);
-};
+}

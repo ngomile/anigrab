@@ -1,6 +1,10 @@
 'use strict';
 
-const DOWNLOADERS = (module.exports.DOWNLOADERS = ['aria2c']);
+import * as aria2c from './downloaders/aria2c.js';
+
+import * as mpv from './players/mpv.js';
+
+export const DOWNLOADERS = ['aria2c'];
 
 /**
  * Dynamically loads the downloader that happens to be
@@ -8,13 +12,16 @@ const DOWNLOADERS = (module.exports.DOWNLOADERS = ['aria2c']);
  *
  * @param {string} downloaderName
  */
-module.exports.downloadLoader = function (downloaderName) {
+export function downloadLoader(downloaderName) {
     if (!DOWNLOADERS.includes(downloaderName)) {
         // Downloader not supported
         return null;
     }
-    return require(`./downloaders/${downloaderName}`);
-};
+
+    // A bit of a cop out, but since only aria2c is being
+    // used this is fine for now.
+    return aria2c;
+}
 
 /**
  * Dynamically loads the player which happens to be mpv
@@ -22,6 +29,6 @@ module.exports.downloadLoader = function (downloaderName) {
  *
  * @param {string} playerName
  */
-module.exports.playerLoader = function (playerName) {
-    return require(`./players/${playerName}`);
-};
+export function playerLoader(playerName) {
+    return mpv;
+}

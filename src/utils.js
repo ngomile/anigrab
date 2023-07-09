@@ -1,18 +1,16 @@
 'use strict';
 
-const { spawn } = require('child_process');
-const readline = require('readline');
-const { promisify } = require('util');
+import { spawn } from 'child_process';
+import readline from 'readline';
+import { promisify } from 'util';
 
-const cheerio = require('cheerio');
-const solveCaptcha = require('hcaptcha-solver');
+import cheerio from 'cheerio';
+import solveCaptcha from 'hcaptcha-solver';
 
-const { delay, timeout, ...request } = require('./request');
-
-// Is there a better way to get class information without having to require?
-const { Episode, SearchResult } = require('./sites/common');
-const { USER_AGENTS } = require('./user_agents');
-const Cache = require('./cache');
+import { Cache } from './cache.js';
+import * as request from './request.js';
+import { Episode, SearchResult } from './sites/common.js';
+import { USER_AGENTS } from './user_agents.js';
 
 const cache = new Cache('store');
 
@@ -385,7 +383,7 @@ async function generateFormData(url, token, headers = {}) {
     return { bypassURL, form };
 }
 
-module.exports = {
+export {
     bypassCaptcha,
     cache,
     extractKsplayer,

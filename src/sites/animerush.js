@@ -1,12 +1,13 @@
 'use strict';
 
-const cheerio = require('cheerio');
+import cheerio from 'cheerio';
 
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const { getHeaders, formatQualities } = require('../utils');
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities } from '../utils.js';
+import { getConfig } from '../config.js';
 
-const config = require('../config').getConfig().siteconfig.animerush;
+const config = getConfig().siteconfig.animerush;
 
 /** Base site url of animerush */
 const SITE_URL = 'https://www.animerush.tv';
@@ -135,8 +136,4 @@ async function getQualities(url) {
     return { qualities };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };

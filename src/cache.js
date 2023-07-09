@@ -1,9 +1,9 @@
 'use strict';
 
-const flatCache = require('flat-cache');
+import flatCache from 'flat-cache';
 
 // Taken from https://gist.github.com/p1ho/1c7d81db13be872440699202fef1c474
-module.exports = class Cache {
+export class Cache {
     constructor(name, path = '', cacheTime = 60) {
         this.name = name;
         this.path = path;
@@ -54,4 +54,4 @@ module.exports = class Cache {
     all() {
         return this.cache.all();
     }
-};
+}
