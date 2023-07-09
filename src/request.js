@@ -1,43 +1,50 @@
 'use strict';
 
-const path = require('path');
-const fs = require('fs');
+const fetch = require('node-fetch');
+const { CookieJar } = require('tough-cookie');
 
-const FileCookieStore = require('tough-cookie-filestore');
-
-const { CONFIG_DIR, getConfig } = require('./config');
-const COOKIES_FILE = path.join(CONFIG_DIR, 'cookies.json');
-
-if (!fs.existsSync(COOKIES_FILE)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
-    fs.writeFileSync(COOKIES_FILE, '');
-}
-
+// Default request options passed to cloudscraper
 const requestOptions = { timeout: 30000, json: true };
-const { requestConfig } = getConfig();
-
-const rp = require('request-promise').defaults({
-    jar: new FileCookieStore(COOKIES_FILE),
-    ...requestOptions,
-});
+const { requestConfig } = require('./config').getConfig();
 
 const cloudscraper = require('cloudscraper').defaults({
     jar: true,
     ...requestOptions,
 });
 
-const delay = numRetry =>
-    Math.pow(2, numRetry) * 1000 + Math.floor(Math.random() * 1000);
+// Instantiate CookieJar for storing node-fetch cookies
+const cookieJar = new CookieJar();
+
+const delay = numRetry => {
+    return Math.pow(2, numRetry) * 1000 + Math.floor(Math.random() * 1000);
+};
+
 const timeout = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function request(url, { cf, ...options }) {
-    const requestHandler = cf ? cloudscraper : rp;
+    const requestHandler = cf ? cloudscraper : fetch;
+
+    // If using node-fetch request handler configure cookies
+    // to be sent with its request
+    if (!cf) {
+        options[headers] = { Cookie: cookieJar.getCookieStringSync(url) };
+    }
 
     let retries = 0;
     while (true) {
         try {
-            const result = await requestHandler(url, options);
-            return result;
+            const response = await requestHandler(url, options);
+
+            // If using node-fetch request handler properly set cookies in jar
+            // from server response
+            if (!cf) {
+                const cookies = response.headers.raw()['set-cookie'];
+                cookies.forEach(cookie => {
+                    cookieJar.setCookieSync(cookie, url);
+                });
+            }
+
+            return response;
         } catch (error) {
             if (retries < requestConfig.retryAttempts) {
                 retries++;
@@ -52,14 +59,14 @@ async function request(url, { cf, ...options }) {
 
 async function get(url, options = {}) {
     options.method = 'GET';
-    const result = await request(url, options);
-    return result;
+    const response = await request(url, options);
+    return response;
 }
 
 async function post(url, options = {}) {
     options.method = 'POST';
-    const result = await request(url, options);
-    return result;
+    const response = await request(url, options);
+    return response;
 }
 
 module.exports = {
