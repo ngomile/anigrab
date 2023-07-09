@@ -122,6 +122,11 @@ USER_AGENTS = [
     'Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/532.0 (KHTML, like Gecko) Chrome/4.0.211.0 Safari/532.0',
 ];
 
+/**
+ * Retrieves a random user agent string from the predefined USER_AGENTS array.
+ *
+ * @returns {string} A random user agent string.
+ */
 function getRandomUserAgent() {
     const randomIndex = Math.floor(Math.random() * USER_AGENTS.length);
     return userAgents[randomIndex];
