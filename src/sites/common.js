@@ -29,10 +29,12 @@ export class Episode {
     /**
      * @param {string} title
      * @param {string} url
+     * @param {string?} poster
      */
-    constructor(title, url) {
+    constructor(title, url, poster = null) {
         this.title = title;
         this.url = url;
+        this.poster = poster;
     }
 
     toString() {
