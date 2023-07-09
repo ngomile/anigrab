@@ -1,5 +1,5 @@
 // Taken from https://github.com/vn-ki/anime-downloader/blob/master/anime_downloader/const.py
-module.exports.USER_AGENTS = [
+USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36',
@@ -121,3 +121,13 @@ module.exports.USER_AGENTS = [
     'Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/532.0 (KHTML, like Gecko) Chrome/4.0.211.0 Safari/532.0',
     'Mozilla/5.0 (X11; U; Linux i686; en-US) AppleWebKit/532.0 (KHTML, like Gecko) Chrome/4.0.211.0 Safari/532.0',
 ];
+
+function getRandomUserAgent() {
+    const randomIndex = Math.floor(Math.random() * USER_AGENTS.length);
+    return userAgents[randomIndex];
+}
+
+module.exports = {
+    USER_AGENTS,
+    getRandomUserAgent,
+};
