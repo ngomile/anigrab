@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import { promisify } from 'util';
 
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import solveCaptcha from 'hcaptcha-solver';
 
 import { Cache } from './cache.js';

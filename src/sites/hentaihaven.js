@@ -1,6 +1,6 @@
 'use strict';
 
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 
 import * as request from '../request.js';
 import { SearchResult, Anime, Episode } from './common.js';
