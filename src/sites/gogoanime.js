@@ -10,9 +10,9 @@ import { getConfig } from '../config.js';
 const config = getConfig().siteconfig.gogoanime;
 
 /** The url of the site */
-const SITE_URL = 'https://www16.gogoanime.io';
+const SITE_URL = 'https://gogoanime.so';
 /** The url to perform search queries on */
-const SEARCH_URL = 'https://www18.gogoanime.io/search.html';
+const SEARCH_URL = 'https://gogoanime.so/search.html';
 /** The url to make api calls to */
 const API_URL = 'https://ajax.gogocdn.net/ajax/load-list-episode';
 
