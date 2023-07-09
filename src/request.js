@@ -27,7 +27,11 @@ async function request(url, { cf, ...options }) {
     // If using node-fetch request handler configure cookies
     // to be sent with its request
     if (!cf) {
-        options[headers] = { Cookie: cookieJar.getCookieStringSync(url) };
+        options[headers] = {
+            // Retain headers that were applied prior
+            ...options[headers],
+            Cookie: cookieJar.getCookieStringSync(url),
+        };
     }
 
     let retries = 0;
