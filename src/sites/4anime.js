@@ -1,20 +1,20 @@
 'use strict';
 
-const cheerio = require('cheerio');
-const request = require('../request');
-const { SearchResult, Anime, Episode } = require('./common');
-const { getHeaders, formatQualities } = require('../utils');
-const { USER_AGENTS } = require('../user_agents');
+import cheerio from 'cheerio';
+import * as request from '../request.js';
+import { SearchResult, Anime, Episode } from './common.js';
+import { getHeaders, formatQualities } from '../utils.js';
+import { getRandomUserAgent } from '../user_agents.js';
 
 // 4anime base url
-const SITE_URL = 'https://4anime.to/';
+const SITE_URL = 'https://4anime.is';
 
 // Regular expression to extract source file of episode
 const SOURCE_REG = /source src="([^"]+)/;
 
 const DEFAULT_HEADERS = getHeaders({
     Referer: SITE_URL,
-    'User-Agent': USER_AGENTS[0],
+    'User-Agent': getRandomUserAgent(),
 });
 
 /**
@@ -25,18 +25,20 @@ const DEFAULT_HEADERS = getHeaders({
  */
 async function search(query) {
     let searchResults = [];
-    query = query.toLowerCase().split(' ').join('+');
+
     const searchResponse = await request.get(SITE_URL, {
-        qs: { s: query },
+        qs: { keyword: query },
         headers: DEFAULT_HEADERS,
         cf: true,
     });
-    const $ = cheerio.load(searchResponse);
 
-    $('#headerDIV_95').each(function (ind, elem) {
-        const title = $(this).find('img+div').text();
-        const url = $(this).find('a').attr('href');
-        const poster = $(this).find('img').attr('src');
+    const $ = cheerio.load(searchResponse);
+    const episodeSelector = '.anime_list > .item';
+
+    $(episodeSelector).each(function (ind, elem) {
+        const title = $(this).find('.anime_name a').text();
+        const url = `${SITE_URL}${$(this).find('.anime_poster').attr('href')}`;
+        const poster = $(this).find('.anime_poster-img').attr('src');
         searchResults.push(new SearchResult(title, url, poster));
     });
 
@@ -86,8 +88,4 @@ async function getQualities(url) {
     return { qualities };
 }
 
-module.exports = {
-    search,
-    getAnime,
-    getQualities,
-};
+export { search, getAnime, getQualities };
