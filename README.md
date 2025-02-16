@@ -98,7 +98,7 @@ You can specify some command line flags that affect the behavior of anigrab, the
 
 ### Usage as Library
 
-anigrab has useful functions that try to intuitively fetch the information of an anime. Each file that handles a site contains three functions it exports which are search, getAnime and getQualities. Usage is as imple as
+anigrab has useful functions that try to intuitively fetch the information of an anime. Each file that handles a site contains three functions it exports which are search, getAnime and getQualities. Usage is as simple as
 
 #### Search, Get Anime and Get Qualities
 
